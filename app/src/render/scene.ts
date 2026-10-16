@@ -169,6 +169,14 @@ export class Scene {
     }
   }
 
+  /** Carril(es) que ocupa una nota: su lane, o los pads del lado del obstáculo. */
+  private lanesOf(note: Note): number[] {
+    if (!isObstacle(note.kind)) return [note.lane];
+    if (note.kind === 'wall-left') return [0, 1];
+    if (note.kind === 'wall-right') return [2, 3];
+    return [0, 1, 2, 3];
+  }
+
   /**
    * Deja la nota estampada un momento (~1.5 s) donde se resolvió para que se
    * vea qué se tocó: los pies sobre su pad, los puños a su altura de llegada.
@@ -176,14 +184,7 @@ export class Scene {
    */
   stampHit(note: Note): void {
     const now = performance.now();
-    const lanes = isObstacle(note.kind)
-      ? note.kind === 'wall-left'
-        ? [0, 1]
-        : note.kind === 'wall-right'
-          ? [2, 3]
-          : [0, 1, 2, 3]
-      : [note.lane];
-    for (const lane of lanes) {
+    for (const lane of this.lanesOf(note)) {
       this.stamps.push({ lane, kind: note.kind, color: PAD_COLORS[lane], start: now });
     }
   }
@@ -660,15 +661,64 @@ export class Scene {
     return { x: this.canvas.width / 2, y: this.canvas.height * 0.42 };
   }
 
+  /**
+   * Caras laterales translúcidas + aristas de neón entre el frente (e) y la
+   * trasera (e − depth) de una losa: el obstáculo tiene volumen y se ve
+   * "largo" avanzando por el túnel, como en la referencia.
+   */
+  private drawSlabSides(
+    front: { x: number; y: number; w: number; h: number },
+    back: { x: number; y: number; w: number; h: number },
+    rgb: string,
+  ): void {
+    const { ctx } = this;
+    const F = [
+      [front.x, front.y],
+      [front.x + front.w, front.y],
+      [front.x + front.w, front.y + front.h],
+      [front.x, front.y + front.h],
+    ];
+    const B = [
+      [back.x, back.y],
+      [back.x + back.w, back.y],
+      [back.x + back.w, back.y + back.h],
+      [back.x, back.y + back.h],
+    ];
+    ctx.save();
+    for (let i = 0; i < 4; i++) {
+      const j = (i + 1) % 4;
+      ctx.fillStyle = `rgba(${rgb},0.14)`;
+      ctx.beginPath();
+      ctx.moveTo(F[i][0], F[i][1]);
+      ctx.lineTo(F[j][0], F[j][1]);
+      ctx.lineTo(B[j][0], B[j][1]);
+      ctx.lineTo(B[i][0], B[i][1]);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = `rgba(${rgb},0.55)`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(F[i][0], F[i][1]);
+      ctx.lineTo(B[i][0], B[i][1]);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   private drawNotes(game: GameView): void {
     const { ctx } = this;
     const vp = this.vanishingPoint();
+    const now = performance.now();
     for (const note of game.notes) {
       if (note.state !== 'pending') continue;
       const until = note.time - game.songTime;
       if (until > game.travelMs || until < -300) continue;
       const p = 1 - Math.max(until, 0) / game.travelMs; // 0 lejos → 1 en el pad
       const e = p * p; // aceleración hacia la cámara
+      // La pieza está sobre la línea de juicio: su pad se enciende aunque no se toque.
+      if (until <= 0) {
+        for (const lane of this.lanesOf(note)) this.padFlash.set(lane, now + 100);
+      }
       ctx.save();
       ctx.globalAlpha = Math.min(1, p * 4) * (until < 0 ? 0.5 : 1);
       if (isObstacle(note.kind)) {
@@ -677,22 +727,31 @@ export class Scene {
           ctx.restore();
           continue;
         }
-        if (note.kind === 'wall-left' || note.kind === 'wall-right') {
-          // Pared translúcida que cubre medio túnel en su lado.
-          const W = this.canvas.width;
-          const w = W * 0.5 * (0.25 + 0.75 * e);
-          const h = w * (img.height / img.width);
-          const cx = note.kind === 'wall-left' ? W * 0.27 : W * 0.73;
-          const y = vp.y + (this.padRect(0).y + this.padRect(0).h * 0.4 - vp.y) * e;
-          ctx.globalAlpha *= 0.85;
-          ctx.drawImage(img, cx - w / 2, y - h * 0.6, w, h);
-        } else {
+        const W = this.canvas.width;
+        const pad0 = this.padRect(0);
+        const isWall = note.kind === 'wall-left' || note.kind === 'wall-right';
+        // Profundidad de la losa: las paredes son más largas que las vallas.
+        const depth = isWall ? 0.3 : 0.15;
+        const rectAt = (d: number) => {
+          if (isWall) {
+            // Pared translúcida que cubre medio túnel en su lado.
+            const w = W * 0.5 * (0.25 + 0.75 * d);
+            const h = w * (img.height / img.width);
+            const cx = note.kind === 'wall-left' ? W * 0.27 : W * 0.73;
+            const y = vp.y + (pad0.y + pad0.h * 0.4 - vp.y) * d;
+            return { x: cx - w / 2, y: y - h * 0.6, w, h };
+          }
           // Valla: barrera baja/ancha centrada en la pista.
-          const w = this.canvas.width * 0.42 * (0.25 + 0.9 * e);
+          const w = W * 0.42 * (0.25 + 0.9 * d);
           const h = w * (img.height / img.width);
-          const y = vp.y + (this.padRect(0).y + this.padRect(0).h * 0.3 - vp.y) * e;
-          ctx.drawImage(img, this.canvas.width / 2 - w / 2, y - h, w, h);
-        }
+          const y = vp.y + (pad0.y + pad0.h * 0.3 - vp.y) * d;
+          return { x: W / 2 - w / 2, y: y - h, w, h };
+        };
+        const tint = isWall ? '255,46,99' : '255,210,62';
+        this.drawSlabSides(rectAt(e), rectAt(Math.max(0.001, e - depth)), tint);
+        const front = rectAt(e);
+        ctx.globalAlpha *= 0.85;
+        ctx.drawImage(img, front.x, front.y, front.w, front.h);
       } else {
         const pad = this.padRect(note.lane as number);
         if (note.kind === 'hand') {
@@ -810,10 +869,12 @@ export class Scene {
       ctx.lineTo(r.x, r.y + r.h);
       ctx.closePath();
       if (active) {
+        // Parpadeo: la luz pulsa mientras la pieza está sobre la línea.
+        const blink = 0.6 + 0.25 * Math.sin(now / 55);
         ctx.shadowColor = color;
         ctx.shadowBlur = 26;
         ctx.fillStyle = color;
-        ctx.globalAlpha = 0.85;
+        ctx.globalAlpha = blink;
         ctx.fill();
         ctx.globalAlpha = 1;
         ctx.strokeStyle = 'rgba(255,255,255,0.9)';
