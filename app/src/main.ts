@@ -433,11 +433,9 @@ async function tick(): Promise<void> {
         if (wait > 0) {
           setBigCard(`${Math.ceil(wait / 1000)}`);
         } else {
-          setBigCard(
-            calibrator.progress < 1
-              ? `${Math.max(1, Math.ceil((1 - calibrator.progress) * 3))}`
-              : null,
-          );
+          // Una sola cuenta atrás (5→1): durante la captura se muestra un
+          // aviso fijo, no otro número que reinicie el conteo.
+          setBigCard('¡QUIETO!');
           const done = calibrator.addFrame(frame.landmarks);
           if (done) finishCalibration(done, calibrator.poseCoverage);
         }
