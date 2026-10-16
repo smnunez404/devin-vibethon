@@ -16,6 +16,8 @@ const MIME: Record<string, string> = {
 };
 
 export default defineConfig({
+  // VITE_BASE permite servir bajo subruta (p. ej. GitHub Pages /devin-vibethon/).
+  base: process.env.VITE_BASE ?? '/',
   plugins: [
     {
       name: 'serve-assets-kit',

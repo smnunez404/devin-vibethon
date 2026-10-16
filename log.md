@@ -92,3 +92,13 @@ Registro append-only de operaciones sobre este proyecto. Añadir entradas nuevas
 - Beatmap ampliable: 32 beats (corta) u 64 beats (normal), pares de puños simultáneos cada segundo compás en la versión larga, obstáculo rotando al final de cada compás de 8 (pared izq./der., agacharse, salto).
 - Selector de escenario (Feria/Diamantes/Engranajes → los tres loops MP4) y de duración en el panel; el fondo se carga al iniciar la sesión.
 - Prototipo funcional completo pendiente de la sesión de calibración y prueba en cámara real del usuario: ajuste de umbrales (esquiva/agacharse/puñetazo), medición de FPS e inferencia, y revisión de sincronización audio↔juicio.
+
+## 2026-10-15 — Publicación web (GitHub Pages) + onboarding
+
+- App servida desde `app/public` (assets copiados del kit, modelo y wasm incluidos); ya no depende del middleware de dev en producción.
+- Pantalla de inicio con botón único guiado por estado (cámara → calibrar → jugar → rejugar) e instrucciones de 3 pasos.
+- `vite.config.ts`: `VITE_BASE` para base path configurable; rutas de assets/modelo/wasm ahora usan `import.meta.env.BASE_URL` (compatibles con subruta).
+- Repo creado en GitHub (`smnunez404/devin-vibethon`) y `dist` publicado en rama `gh-pages` con base `/devin-vibethon/`.
+- **Verificado:** https://smnunez404.github.io/devin-vibethon/ → index, bundle JS, modelo (9,4 MB), wasm (13,5 MB), WAV y MP4 de fondo responden 200.
+- `raw/` excluido del versionado (MP4 de 314 MB > límite de GitHub); `vercel.json` añadido en `app/` para despliegue futuro en Vercel (requiere cuenta/auth del usuario).
+- Pendiente: calibración fina de umbrales en cámara real y sincronía audio↔gesto.

@@ -95,7 +95,7 @@ export class Scene {
   }
 
   async loadAssets(): Promise<void> {
-    const base = '/assets/v001';
+    const base = `${import.meta.env.BASE_URL}assets/v001`;
     const jobs: Array<[string, string]> = [
       ['pad-idle', `${base}/pads/pad-idle.png`],
       ['combo-label', `${base}/hud/combo-label.png`],

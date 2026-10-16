@@ -101,12 +101,12 @@ function getBgVideo(): HTMLVideoElement {
     bgVideo.muted = true;
     bgVideo.playsInline = true;
   }
-  const src = `/assets/v001/backgrounds/${sceneSelect.value}.mp4`;
+  const src = `${import.meta.env.BASE_URL}assets/v001/backgrounds/${sceneSelect.value}.mp4`;
   if (!bgVideo.src.endsWith(`${sceneSelect.value}.mp4`)) bgVideo.src = src;
   return bgVideo;
 }
 
-const SFX = '/assets/v001/audio';
+const SFX = `${import.meta.env.BASE_URL}assets/v001/audio`;
 const sounds = {
   hand: new Audio(`${SFX}/hit-hand.wav`),
   foot: new Audio(`${SFX}/hit-foot.wav`),

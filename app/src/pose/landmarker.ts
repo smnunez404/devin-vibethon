@@ -1,7 +1,8 @@
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 import type { Landmark } from '../types';
 
-export const MODEL_PATH = '/models/pose_landmarker_full.task';
+const BASE = import.meta.env.BASE_URL;
+export const MODEL_PATH = `${BASE}models/pose_landmarker_full.task`;
 export const MODEL_LABEL = 'pose_landmarker_full (33 puntos)';
 
 export interface PoseFrame {
@@ -17,7 +18,7 @@ export class PoseTracker {
   private lastVideoTime = -1;
 
   async init(): Promise<void> {
-    const fileset = await FilesetResolver.forVisionTasks('/wasm');
+    const fileset = await FilesetResolver.forVisionTasks(`${BASE}wasm`);
     this.landmarker = await PoseLandmarker.createFromOptions(fileset, {
       baseOptions: { modelAssetPath: MODEL_PATH, delegate: 'GPU' },
       runningMode: 'VIDEO',
