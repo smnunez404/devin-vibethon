@@ -1,0 +1,9 @@
+.tools/
+node_modules/
+__pycache__/
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+app/dist/
+
+# Material de referencia (no desplegable, >100MB)
+raw/

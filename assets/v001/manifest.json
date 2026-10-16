@@ -1,0 +1,2525 @@
+{
+  "version": "v001",
+  "stage": "primer lote vectorial, revisión pendiente",
+  "assets": [
+    {
+      "id": "note-foot-left-cyan",
+      "category": "notes",
+      "path": "notes/note-foot-left-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1018,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-foot-left-cyan.png",
+      "pngBytes": 12501,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "c07af1c598f09aa1a398495af6e05815fbdf47f60507936e80a60cc8069b9e6f"
+    },
+    {
+      "id": "note-foot-right-cyan",
+      "category": "notes",
+      "path": "notes/note-foot-right-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1046,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-foot-right-cyan.png",
+      "pngBytes": 12543,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "f9b71f08b4bafaf1466636d34138b0f6faa758a99601d9e43031abf26ff38803"
+    },
+    {
+      "id": "note-fist-left-cyan",
+      "category": "notes",
+      "path": "notes/note-fist-left-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1109,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-fist-left-cyan.png",
+      "pngBytes": 15699,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "a08b1e14946af444e557777366ec77ddcbf4e97167a77c134b847ba840428ac4"
+    },
+    {
+      "id": "note-fist-right-cyan",
+      "category": "notes",
+      "path": "notes/note-fist-right-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1137,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-fist-right-cyan.png",
+      "pngBytes": 15706,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "bc8a1c3e9de0b1da6ae918beedd2022653de007677231ecccdd80dc4edd445c7"
+    },
+    {
+      "id": "note-hand-left-cyan",
+      "category": "notes",
+      "path": "notes/note-hand-left-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 932,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-hand-left-cyan.png",
+      "pngBytes": 13168,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "0ca919690547517634fc4e99ff00dd505284e2bfff4f475c4a5b2f8f9eb170d6"
+    },
+    {
+      "id": "note-hand-right-cyan",
+      "category": "notes",
+      "path": "notes/note-hand-right-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 960,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-hand-right-cyan.png",
+      "pngBytes": 13137,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "1477644d122efedab5c39716d80271c0b2808bbd56d54cdfd95e9971a9142a1e"
+    },
+    {
+      "id": "note-arrow-left-cyan",
+      "category": "notes",
+      "path": "notes/note-arrow-left-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 722,
+      "note": "Flecha direccional propuesta para la adaptación; no confirmada como nota en el video.",
+      "png": "notes/note-arrow-left-cyan.png",
+      "pngBytes": 8126,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "842f198a9e2304a9fb0e2d2acff449d70dc9fb713d342703dbc5e408e0747092"
+    },
+    {
+      "id": "note-arrow-right-cyan",
+      "category": "notes",
+      "path": "notes/note-arrow-right-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 721,
+      "note": "Flecha direccional propuesta para la adaptación; no confirmada como nota en el video.",
+      "png": "notes/note-arrow-right-cyan.png",
+      "pngBytes": 8131,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "5f0cfa1cc67e4a2238003045072acb0cd0c9738b30cc0160e8242590f7542e5d"
+    },
+    {
+      "id": "pad-active-cyan",
+      "category": "pads",
+      "path": "pads/pad-active-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 570,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pads/pad-active-cyan.png",
+      "pngBytes": 11015,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "7f4f6f13b4b79983a0a122d035b0e9993d1fa4c353150cddf16201081bb35286"
+    },
+    {
+      "id": "impact-ring-cyan",
+      "category": "effects",
+      "path": "effects/impact-ring-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 584,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/impact-ring-cyan.png",
+      "pngBytes": 90811,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "fd19e96d02bf8888fe4150e2122eb3a0bc1c1586cc3dad241375d481ad6068e9"
+    },
+    {
+      "id": "impact-fragments-cyan",
+      "category": "effects",
+      "path": "effects/impact-fragments-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 3057,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/impact-fragments-cyan.png",
+      "pngBytes": 10675,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "09c04b22b7dc6d69f7e2c7619162f0c2305992336b6cd01e15bb436bd0eddbd2"
+    },
+    {
+      "id": "wall-cyan",
+      "category": "obstacles",
+      "path": "obstacles/wall-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 657,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "obstacles/wall-cyan.png",
+      "pngBytes": 26836,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "50fc283713f27cf3d04f3d63b26eccce858997d2909f4f33f123d2ee1ede88c1"
+    },
+    {
+      "id": "note-foot-left-pink",
+      "category": "notes",
+      "path": "notes/note-foot-left-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1018,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-foot-left-pink.png",
+      "pngBytes": 12449,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "219f27336b39f7a2f5359213da0c248a52b314e04e4258227c9807f528f53a2f"
+    },
+    {
+      "id": "note-foot-right-pink",
+      "category": "notes",
+      "path": "notes/note-foot-right-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1046,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-foot-right-pink.png",
+      "pngBytes": 12484,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "2e53cd3a2bac224c02e96cc7ee9861f2e0b976f9fd850fed1ddb7e7869b65bdc"
+    },
+    {
+      "id": "note-fist-left-pink",
+      "category": "notes",
+      "path": "notes/note-fist-left-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1109,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-fist-left-pink.png",
+      "pngBytes": 15668,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "46c8beaa6627171c5b1cbcdb553f0d475705df2d24f117be3097af7340669b3d"
+    },
+    {
+      "id": "note-fist-right-pink",
+      "category": "notes",
+      "path": "notes/note-fist-right-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1137,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-fist-right-pink.png",
+      "pngBytes": 15697,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "cdb526a88368f5b033c76f2fa4dd309d6e0caa90c1406ed29bb03b7a19fa1291"
+    },
+    {
+      "id": "note-hand-left-pink",
+      "category": "notes",
+      "path": "notes/note-hand-left-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 932,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-hand-left-pink.png",
+      "pngBytes": 13258,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "6cf1455aa4edb389d4fb70af610273b2822cc1db04f3fdacf0cfac9767061067"
+    },
+    {
+      "id": "note-hand-right-pink",
+      "category": "notes",
+      "path": "notes/note-hand-right-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 960,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-hand-right-pink.png",
+      "pngBytes": 13237,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "189e04cdd5260b0ecab9ce673fa0f3c4acd072e1d7c8806c9363e25368f38a7b"
+    },
+    {
+      "id": "note-arrow-left-pink",
+      "category": "notes",
+      "path": "notes/note-arrow-left-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 722,
+      "note": "Flecha direccional propuesta para la adaptación; no confirmada como nota en el video.",
+      "png": "notes/note-arrow-left-pink.png",
+      "pngBytes": 8222,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "2ed22c761bf96af2d4fdb6ebe5fc2bcaf55520806ba3f59617d5caaba43db865"
+    },
+    {
+      "id": "note-arrow-right-pink",
+      "category": "notes",
+      "path": "notes/note-arrow-right-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 721,
+      "note": "Flecha direccional propuesta para la adaptación; no confirmada como nota en el video.",
+      "png": "notes/note-arrow-right-pink.png",
+      "pngBytes": 8233,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "fd4f0dbe4f349ddaab61afefc0a0f6b335410054254d8373003a38c65ad2b3ea"
+    },
+    {
+      "id": "pad-active-pink",
+      "category": "pads",
+      "path": "pads/pad-active-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 570,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pads/pad-active-pink.png",
+      "pngBytes": 11075,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "00a6ff1106bda174ff74f4fe937e8609fa10a87f222c7e28cb21662beb20f27f"
+    },
+    {
+      "id": "impact-ring-pink",
+      "category": "effects",
+      "path": "effects/impact-ring-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 584,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/impact-ring-pink.png",
+      "pngBytes": 93477,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "914df59cf82b3252a32cbe04c69055030f21f0973a12b1bde30a31e19bd75c14"
+    },
+    {
+      "id": "impact-fragments-pink",
+      "category": "effects",
+      "path": "effects/impact-fragments-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 3057,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/impact-fragments-pink.png",
+      "pngBytes": 10706,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "ba2dc84dbc01d9f1bf3f1120b807c03e18f9ec76f63f71db1260e2801b338aef"
+    },
+    {
+      "id": "wall-pink",
+      "category": "obstacles",
+      "path": "obstacles/wall-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 657,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "obstacles/wall-pink.png",
+      "pngBytes": 22974,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "46e6948b5db4a348a7b3605b4a930c5923911450a5086a7e42adf7b55f340886"
+    },
+    {
+      "id": "note-foot-left-yellow",
+      "category": "notes",
+      "path": "notes/note-foot-left-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1018,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-foot-left-yellow.png",
+      "pngBytes": 12596,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "cdd374f42a4d364f67a50430c3647a5fbb631995e930db9d4cafabbf97cbf4c0"
+    },
+    {
+      "id": "note-foot-right-yellow",
+      "category": "notes",
+      "path": "notes/note-foot-right-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1046,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-foot-right-yellow.png",
+      "pngBytes": 12657,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "b9966941e822bc5944f6676876f3ed31086f949b2da849465bb2ccb8738bafbd"
+    },
+    {
+      "id": "note-fist-left-yellow",
+      "category": "notes",
+      "path": "notes/note-fist-left-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1109,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-fist-left-yellow.png",
+      "pngBytes": 15893,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "0e8a02a76225979ba26154553ca4c64f0e122bd4bf10fc6d2949a1bf6e3acb2b"
+    },
+    {
+      "id": "note-fist-right-yellow",
+      "category": "notes",
+      "path": "notes/note-fist-right-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1137,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-fist-right-yellow.png",
+      "pngBytes": 15879,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "d4c519db06e6db67070d3b867dff43b23819be3ee22c05065453477e43810a06"
+    },
+    {
+      "id": "note-hand-left-yellow",
+      "category": "notes",
+      "path": "notes/note-hand-left-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 932,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-hand-left-yellow.png",
+      "pngBytes": 13288,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "d7ed994991ef39ffccce2e6d4a5084b5501c700fc78da1111416d4f3456be574"
+    },
+    {
+      "id": "note-hand-right-yellow",
+      "category": "notes",
+      "path": "notes/note-hand-right-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 960,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-hand-right-yellow.png",
+      "pngBytes": 13268,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "86e4013914b8ccb3b735769e877b09a18c9957ec3d57f668c314a755339658c3"
+    },
+    {
+      "id": "note-arrow-left-yellow",
+      "category": "notes",
+      "path": "notes/note-arrow-left-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 722,
+      "note": "Flecha direccional propuesta para la adaptación; no confirmada como nota en el video.",
+      "png": "notes/note-arrow-left-yellow.png",
+      "pngBytes": 8323,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "b3c6b8875a8fb1a051907143dda28919b34140f6cd737bee0222a3b9c426a902"
+    },
+    {
+      "id": "note-arrow-right-yellow",
+      "category": "notes",
+      "path": "notes/note-arrow-right-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 721,
+      "note": "Flecha direccional propuesta para la adaptación; no confirmada como nota en el video.",
+      "png": "notes/note-arrow-right-yellow.png",
+      "pngBytes": 8323,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "2b60190a475f7c6fb52231697a6f10af35e7edf4c6981c1bb0fd5360a5c0c005"
+    },
+    {
+      "id": "pad-active-yellow",
+      "category": "pads",
+      "path": "pads/pad-active-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 570,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pads/pad-active-yellow.png",
+      "pngBytes": 11012,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "32ec412442300bce9e6a851e388dbef53091818e7d6cc4fb7fbf6149680eb598"
+    },
+    {
+      "id": "impact-ring-yellow",
+      "category": "effects",
+      "path": "effects/impact-ring-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 584,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/impact-ring-yellow.png",
+      "pngBytes": 76224,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "15a807ca07392e15c1fb5b737e6a2992d95db833a72df380f0b9225a57d6b97c"
+    },
+    {
+      "id": "impact-fragments-yellow",
+      "category": "effects",
+      "path": "effects/impact-fragments-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 3057,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/impact-fragments-yellow.png",
+      "pngBytes": 10157,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "9dc968fbe83e084b55fd780b739a4486af35ee3267f5f006da45a28d370f9188"
+    },
+    {
+      "id": "wall-yellow",
+      "category": "obstacles",
+      "path": "obstacles/wall-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 657,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "obstacles/wall-yellow.png",
+      "pngBytes": 19021,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "0beadf2058340ce945bbb44527c991e5fbe60930180119dd775d1f2e68b393ef"
+    },
+    {
+      "id": "note-foot-left-purple",
+      "category": "notes",
+      "path": "notes/note-foot-left-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1018,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-foot-left-purple.png",
+      "pngBytes": 12383,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "0cc48aed51767688ec81720b0110ef744d2f4a8733c3d828310fa992064d263c"
+    },
+    {
+      "id": "note-foot-right-purple",
+      "category": "notes",
+      "path": "notes/note-foot-right-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1046,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-foot-right-purple.png",
+      "pngBytes": 12444,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "bc511ce5244d91d0f3288725593454305c8021e9ea646f3f75369a1ab3550838"
+    },
+    {
+      "id": "note-fist-left-purple",
+      "category": "notes",
+      "path": "notes/note-fist-left-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1109,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-fist-left-purple.png",
+      "pngBytes": 15562,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "93b1d7791d5bb3cfb4fd4c19b2da0cb76ee48b5f1d94d08399b4a171b028fc32"
+    },
+    {
+      "id": "note-fist-right-purple",
+      "category": "notes",
+      "path": "notes/note-fist-right-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1137,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-fist-right-purple.png",
+      "pngBytes": 15614,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "3ef44d313b924c59e24690163d90b83814996e3109d7da09cedd6449a6b19857"
+    },
+    {
+      "id": "note-hand-left-purple",
+      "category": "notes",
+      "path": "notes/note-hand-left-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 932,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-hand-left-purple.png",
+      "pngBytes": 13065,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "4cd456b618370c3973337b190379b9820c86be2b3e8fc80993998986f63bfa94"
+    },
+    {
+      "id": "note-hand-right-purple",
+      "category": "notes",
+      "path": "notes/note-hand-right-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 960,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "notes/note-hand-right-purple.png",
+      "pngBytes": 13018,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "7c436671bed60213e2d9719194097d438497b601f1da38ea4ea502055e234649"
+    },
+    {
+      "id": "note-arrow-left-purple",
+      "category": "notes",
+      "path": "notes/note-arrow-left-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 722,
+      "note": "Flecha direccional propuesta para la adaptación; no confirmada como nota en el video.",
+      "png": "notes/note-arrow-left-purple.png",
+      "pngBytes": 8128,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "b60333485cd07babfccfc3787ad1a6fa2e06a6f67f3b3ccaab396381c78baa78"
+    },
+    {
+      "id": "note-arrow-right-purple",
+      "category": "notes",
+      "path": "notes/note-arrow-right-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 721,
+      "note": "Flecha direccional propuesta para la adaptación; no confirmada como nota en el video.",
+      "png": "notes/note-arrow-right-purple.png",
+      "pngBytes": 8137,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "e538a4874e0a9247d03c7337f1d0e30bb649560ac32ff3c63e1cc0bbd9811526"
+    },
+    {
+      "id": "pad-active-purple",
+      "category": "pads",
+      "path": "pads/pad-active-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 570,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pads/pad-active-purple.png",
+      "pngBytes": 11024,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "c314419f4d2281b86e433bbba882b1c68dfd0d23ad295fa3daca7198fc6f9133"
+    },
+    {
+      "id": "impact-ring-purple",
+      "category": "effects",
+      "path": "effects/impact-ring-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 584,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/impact-ring-purple.png",
+      "pngBytes": 82578,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "4677d1a7d9a423a2fc5467996937380c30393e945d8f49885d8b4f9df47970d2"
+    },
+    {
+      "id": "impact-fragments-purple",
+      "category": "effects",
+      "path": "effects/impact-fragments-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 3057,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/impact-fragments-purple.png",
+      "pngBytes": 10527,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "e16f2ff85c78ba3f42599b53cf2bcaa6969acd7d23fce46e76b8f3eea4304448"
+    },
+    {
+      "id": "wall-purple",
+      "category": "obstacles",
+      "path": "obstacles/wall-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 657,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "obstacles/wall-purple.png",
+      "pngBytes": 22566,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "139e8d625d9ecd49ab0cf985c82c37411407b845f4d0eb3ba437be4691a09b4f"
+    },
+    {
+      "id": "pad-idle",
+      "category": "pads",
+      "path": "pads/pad-idle.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 549,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pads/pad-idle.png",
+      "pngBytes": 9741,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "77ca73fabf0fa6db8e8aacb1a155869efcae406aa624c8f7f444019a7fa42b32"
+    },
+    {
+      "id": "track-transparent",
+      "category": "track",
+      "path": "track/track-transparent.svg",
+      "width": 1920,
+      "height": 1080,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 563,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "track/track-transparent.png",
+      "pngBytes": 39216,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "62e4e5e26305b19b22e96d9dc4e6a9a423758a47f0380b69eabad721b81f5fcf"
+    },
+    {
+      "id": "pose-neutral",
+      "category": "guides",
+      "path": "guides/pose-neutral.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 18405,
+      "note": "Silueta corporal continua propia, contorno blanco y fondo transparente. Acción orientativa; no es salida de tracking.",
+      "png": "guides/pose-neutral.png",
+      "pngBytes": 15072,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "eac2474198368257165b151cefe7397f96eeb0ac2182dfb7ee46a2db67032f01"
+    },
+    {
+      "id": "pose-arms-up",
+      "category": "guides",
+      "path": "guides/pose-arms-up.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 13774,
+      "note": "Silueta corporal continua propia, contorno blanco y fondo transparente. Acción orientativa; no es salida de tracking.",
+      "png": "guides/pose-arms-up.png",
+      "pngBytes": 14617,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "36b63dd51421d4093d1637183eb8ebe6de114f48e35f2cc31d9a95c457703740"
+    },
+    {
+      "id": "pose-punch-left",
+      "category": "guides",
+      "path": "guides/pose-punch-left.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 14760,
+      "note": "Silueta corporal continua propia, contorno blanco y fondo transparente. Acción orientativa; no es salida de tracking.",
+      "png": "guides/pose-punch-left.png",
+      "pngBytes": 13719,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "09f140d65de0f8f0730d82fc1f9d04a80d4dab5bc5111ecac957b2202f8c11a8"
+    },
+    {
+      "id": "pose-punch-right",
+      "category": "guides",
+      "path": "guides/pose-punch-right.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 14760,
+      "note": "Silueta corporal continua propia, contorno blanco y fondo transparente. Acción orientativa; no es salida de tracking.",
+      "png": "guides/pose-punch-right.png",
+      "pngBytes": 13735,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "6c3d87fbc8fc1bd797361b67dc4a59207b5440142078596f2fcb44053a487579"
+    },
+    {
+      "id": "pose-squat",
+      "category": "guides",
+      "path": "guides/pose-squat.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 17955,
+      "note": "Silueta corporal continua propia, contorno blanco y fondo transparente. Acción orientativa; no es salida de tracking.",
+      "png": "guides/pose-squat.png",
+      "pngBytes": 15793,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "107b7e13b3bb2d14aa5221472ec8dcbba8fd5f49bb7b08085cf2c1ca8742b3d0"
+    },
+    {
+      "id": "pose-step-left",
+      "category": "guides",
+      "path": "guides/pose-step-left.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 18270,
+      "note": "Silueta corporal continua propia, contorno blanco y fondo transparente. Acción orientativa; no es salida de tracking.",
+      "png": "guides/pose-step-left.png",
+      "pngBytes": 15923,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "a384521278c36c9e0edb14ab7efd2031e924df219d0cac1a7236783cf03066b3"
+    },
+    {
+      "id": "pose-step-right",
+      "category": "guides",
+      "path": "guides/pose-step-right.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 18270,
+      "note": "Silueta corporal continua propia, contorno blanco y fondo transparente. Acción orientativa; no es salida de tracking.",
+      "png": "guides/pose-step-right.png",
+      "pngBytes": 15903,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "c700d8821982b936022902a9e2a77b5b1c2bf52b2fccd0ef96d4547269f86f73"
+    },
+    {
+      "id": "guide-panel",
+      "category": "guides",
+      "path": "guides/guide-panel.svg",
+      "width": 320,
+      "height": 560,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 460,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "guides/guide-panel.png",
+      "pngBytes": 1950,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "39530ba2cda35ee1de6ba5ab43951219b3cbbcb0b89a130b0b82baa8c2614358"
+    },
+    {
+      "id": "rating-nice",
+      "category": "hud",
+      "path": "hud/rating-nice.svg",
+      "width": 800,
+      "height": 160,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 631,
+      "note": "Reconstrucción propia; PERFECT/MISS son recursos propuestos para el futuro feedback, no confirmados en el muestreo.",
+      "png": "hud/rating-nice.png",
+      "pngBytes": 7775,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "dd41a5fa8ce4eee347236892bc67233fa25d7a328d815e668a68a16074b79632"
+    },
+    {
+      "id": "rating-great",
+      "category": "hud",
+      "path": "hud/rating-great.svg",
+      "width": 800,
+      "height": 160,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 632,
+      "note": "Reconstrucción propia; PERFECT/MISS son recursos propuestos para el futuro feedback, no confirmados en el muestreo.",
+      "png": "hud/rating-great.png",
+      "pngBytes": 8944,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "7a36b40890c1cef758980c9e1cac54859676d3023b4bb1171c73f5f3ec6128b8"
+    },
+    {
+      "id": "rating-awesome",
+      "category": "hud",
+      "path": "hud/rating-awesome.svg",
+      "width": 800,
+      "height": 160,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 634,
+      "note": "Reconstrucción propia; PERFECT/MISS son recursos propuestos para el futuro feedback, no confirmados en el muestreo.",
+      "png": "hud/rating-awesome.png",
+      "pngBytes": 11399,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "cbcb9d1b1ac17023c626d7e333b82abbf2b0aa041c6f1fba6ae074ea243d35db"
+    },
+    {
+      "id": "rating-unstoppable",
+      "category": "hud",
+      "path": "hud/rating-unstoppable.svg",
+      "width": 800,
+      "height": 160,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 638,
+      "note": "Reconstrucción propia; PERFECT/MISS son recursos propuestos para el futuro feedback, no confirmados en el muestreo.",
+      "png": "hud/rating-unstoppable.png",
+      "pngBytes": 11428,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "ecc60a594923badcbc06a58a0a34c451abbdd3e81958ce9eeba45540fad19561"
+    },
+    {
+      "id": "rating-perfect",
+      "category": "hud",
+      "path": "hud/rating-perfect.svg",
+      "width": 800,
+      "height": 160,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 634,
+      "note": "Reconstrucción propia; PERFECT/MISS son recursos propuestos para el futuro feedback, no confirmados en el muestreo.",
+      "png": "hud/rating-perfect.png",
+      "pngBytes": 9763,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "f66984b2a50f5ec68497ac93a3b732cf987bd02eb3404914c16a97481f6e24f0"
+    },
+    {
+      "id": "rating-miss",
+      "category": "hud",
+      "path": "hud/rating-miss.svg",
+      "width": 800,
+      "height": 160,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 631,
+      "note": "Reconstrucción propia; PERFECT/MISS son recursos propuestos para el futuro feedback, no confirmados en el muestreo.",
+      "png": "hud/rating-miss.png",
+      "pngBytes": 8612,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "b55cfaf8df8009d3913a7b069c9a22b47a55e20fc59e239e548794a87a3307b5"
+    },
+    {
+      "id": "digit-0",
+      "category": "hud",
+      "path": "hud/digit-0.svg",
+      "width": 192,
+      "height": 256,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 514,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "hud/digit-0.png",
+      "pngBytes": 4050,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "a45d7304861b71823bc1b7bd528fe93483a6e35994ef8e993a9b7b02f0cbb478"
+    },
+    {
+      "id": "digit-1",
+      "category": "hud",
+      "path": "hud/digit-1.svg",
+      "width": 192,
+      "height": 256,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 514,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "hud/digit-1.png",
+      "pngBytes": 3090,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "b9bc20ebc0160a6e37b84a8d9cd950e986246fe610901dafde1e0dde90eca84c"
+    },
+    {
+      "id": "digit-2",
+      "category": "hud",
+      "path": "hud/digit-2.svg",
+      "width": 192,
+      "height": 256,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 514,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "hud/digit-2.png",
+      "pngBytes": 3025,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "089b6a0ece4d60f8aece272dd594c068d8d93c1cc2d7ab6c901d15c1c991a41a"
+    },
+    {
+      "id": "digit-3",
+      "category": "hud",
+      "path": "hud/digit-3.svg",
+      "width": 192,
+      "height": 256,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 514,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "hud/digit-3.png",
+      "pngBytes": 3684,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "37b292362a44b7acf0eff1709687a74a13c83aee17377bd8a907846dcf7d7883"
+    },
+    {
+      "id": "digit-4",
+      "category": "hud",
+      "path": "hud/digit-4.svg",
+      "width": 192,
+      "height": 256,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 514,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "hud/digit-4.png",
+      "pngBytes": 3445,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "33596ef08daedeb1c9e1312dd580d542c3aca9680bb0eccd550c94440a3fac25"
+    },
+    {
+      "id": "digit-5",
+      "category": "hud",
+      "path": "hud/digit-5.svg",
+      "width": 192,
+      "height": 256,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 514,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "hud/digit-5.png",
+      "pngBytes": 3512,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "14e8a8ca595326226b1328ef2693a5fc9c4428d5065192f11fd1521152c8def1"
+    },
+    {
+      "id": "digit-6",
+      "category": "hud",
+      "path": "hud/digit-6.svg",
+      "width": 192,
+      "height": 256,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 514,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "hud/digit-6.png",
+      "pngBytes": 4028,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "424e3ce7ec8c3988e223927ff5077a8cf11afde3f628e4cff6fc816d3d596422"
+    },
+    {
+      "id": "digit-7",
+      "category": "hud",
+      "path": "hud/digit-7.svg",
+      "width": 192,
+      "height": 256,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 514,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "hud/digit-7.png",
+      "pngBytes": 2717,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "2e427ee4d5ceb2b9a3aa37149fef5a1a1ba50d02d0581ae68169285c6e712d1b"
+    },
+    {
+      "id": "digit-8",
+      "category": "hud",
+      "path": "hud/digit-8.svg",
+      "width": 192,
+      "height": 256,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 514,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "hud/digit-8.png",
+      "pngBytes": 4089,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "a1c538a0bab563061695de6d2c386f85dffcd6c45579371a856112f637d2246f"
+    },
+    {
+      "id": "digit-9",
+      "category": "hud",
+      "path": "hud/digit-9.svg",
+      "width": 192,
+      "height": 256,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 514,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "hud/digit-9.png",
+      "pngBytes": 4046,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "def5e62c403f3249d2a3186bb8e9dec49f6930c59a859301f1beae477858f31c"
+    },
+    {
+      "id": "background-fairground",
+      "category": "backgrounds",
+      "path": "backgrounds/background-fairground.svg",
+      "width": 1920,
+      "height": 1080,
+      "format": "SVG",
+      "alpha": false,
+      "bytes": 80491,
+      "note": "Estudio estático de perspectiva v001; geometría propia. Pendientes reflejos y loop animado.",
+      "png": "backgrounds/background-fairground.png",
+      "pngBytes": 1321221,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "3f03b6f048f75836f6e581b24cd7db7aa7624722c0d4fbe85a8cc7992a06872e"
+    },
+    {
+      "id": "background-diamonds",
+      "category": "backgrounds",
+      "path": "backgrounds/background-diamonds.svg",
+      "width": 1920,
+      "height": 1080,
+      "format": "SVG",
+      "alpha": false,
+      "bytes": 74585,
+      "note": "Estudio estático de perspectiva v001; geometría propia. Pendientes reflejos y loop animado.",
+      "png": "backgrounds/background-diamonds.png",
+      "pngBytes": 979607,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "4f10f6a6f7923d0f0246221f38557ea5291f8193dc2c24b753b9133286def5cb"
+    },
+    {
+      "id": "background-gears",
+      "category": "backgrounds",
+      "path": "backgrounds/background-gears.svg",
+      "width": 1920,
+      "height": 1080,
+      "format": "SVG",
+      "alpha": false,
+      "bytes": 74638,
+      "note": "Estudio estático de perspectiva v001; geometría propia. Pendientes reflejos y loop animado.",
+      "png": "backgrounds/background-gears.png",
+      "pngBytes": 1094238,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "9ca1768d61a51adae876c195e6c8bfb39e9416ec1b78d1e68713be307c04855c"
+    },
+    {
+      "id": "icon-foot-left",
+      "category": "icons",
+      "path": "icons/icon-foot-left.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 808,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "icons/icon-foot-left.png",
+      "pngBytes": 8065,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "773fc61be2654cb45e684207b64ff8a2ff807fbb762d883d0e91857c5e944038"
+    },
+    {
+      "id": "icon-foot-right",
+      "category": "icons",
+      "path": "icons/icon-foot-right.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 836,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "icons/icon-foot-right.png",
+      "pngBytes": 8078,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "c8fdcd6a0d7391ce19df0e71a60a47308244ec3dc9da59ee7216a6b822d8b6fe"
+    },
+    {
+      "id": "icon-fist-left",
+      "category": "icons",
+      "path": "icons/icon-fist-left.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 899,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "icons/icon-fist-left.png",
+      "pngBytes": 11209,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "be165baee7448c47d3787b0c432166efc1f317a4a83eeb5309a8ac8492fb0434"
+    },
+    {
+      "id": "icon-fist-right",
+      "category": "icons",
+      "path": "icons/icon-fist-right.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 927,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "icons/icon-fist-right.png",
+      "pngBytes": 11253,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "1c2be52c020c90f8c7b8b69fcd14a174a7ba57af6c983ed46f0e5ff6ec61ec44"
+    },
+    {
+      "id": "icon-hand-left",
+      "category": "icons",
+      "path": "icons/icon-hand-left.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 722,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "icons/icon-hand-left.png",
+      "pngBytes": 8574,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "30c85a479975532863935b760161239232f96d5d42ac9789deb6288fab67d97e"
+    },
+    {
+      "id": "icon-hand-right",
+      "category": "icons",
+      "path": "icons/icon-hand-right.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 750,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "icons/icon-hand-right.png",
+      "pngBytes": 8501,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "17282d4050183c22c95231492b149adb9567de82d16f585a74d3b98b771430d8"
+    },
+    {
+      "id": "trail-cyan",
+      "category": "effects",
+      "path": "effects/trail-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 609,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/trail-cyan.png",
+      "pngBytes": 12523,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "6e83712d12f69b1a07d4ec86f61c00facc6b2d64b2e1f4defdb5ae9570d0a1c2"
+    },
+    {
+      "id": "flash-cyan",
+      "category": "effects",
+      "path": "effects/flash-cyan.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 580,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/flash-cyan.png",
+      "pngBytes": 28957,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "4225776695d890d3845b98502acb62ff15ad3a381c605238eccc6300a4c3e588"
+    },
+    {
+      "id": "note-pair-feet-cyan",
+      "category": "pairs",
+      "path": "pairs/note-pair-feet-cyan.svg",
+      "width": 1024,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1331,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pairs/note-pair-feet-cyan.png",
+      "pngBytes": 13204,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "5dd8414e00da5fbc913108e05ed6ded31f58d40c3c5e551df204b9672b453819"
+    },
+    {
+      "id": "note-pair-fists-cyan",
+      "category": "pairs",
+      "path": "pairs/note-pair-fists-cyan.svg",
+      "width": 1024,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1488,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pairs/note-pair-fists-cyan.png",
+      "pngBytes": 18897,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "924afccc401cdc97012bf36b6ddda2d8e676e2ed8e429689260e0568b9a74769"
+    },
+    {
+      "id": "trail-pink",
+      "category": "effects",
+      "path": "effects/trail-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 609,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/trail-pink.png",
+      "pngBytes": 12479,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "086c3e03d6d973e7beb16082ea3d4bdca1173232f7b24aea72852eb85b358543"
+    },
+    {
+      "id": "flash-pink",
+      "category": "effects",
+      "path": "effects/flash-pink.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 580,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/flash-pink.png",
+      "pngBytes": 29324,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "06f925a86c4a4348f2ed1a30e0349b9c17035f3e3bf7e73ac3255d4c2f858731"
+    },
+    {
+      "id": "note-pair-feet-pink",
+      "category": "pairs",
+      "path": "pairs/note-pair-feet-pink.svg",
+      "width": 1024,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1331,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pairs/note-pair-feet-pink.png",
+      "pngBytes": 13331,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "16ab9063e59c06ae23fa06551abbb94083f34a1af8bf905034dbc5c12226efba"
+    },
+    {
+      "id": "note-pair-fists-pink",
+      "category": "pairs",
+      "path": "pairs/note-pair-fists-pink.svg",
+      "width": 1024,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1488,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pairs/note-pair-fists-pink.png",
+      "pngBytes": 20373,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "9d4a6b6045fb668a298cb2b0a7bb3305c370da8242d89a52c3329b2ea403fb2a"
+    },
+    {
+      "id": "trail-yellow",
+      "category": "effects",
+      "path": "effects/trail-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 609,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/trail-yellow.png",
+      "pngBytes": 11633,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "2bd28d7506a19417701a4dceb513928c2f26f2a723c0015eded86bbf418d3d5f"
+    },
+    {
+      "id": "flash-yellow",
+      "category": "effects",
+      "path": "effects/flash-yellow.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 580,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/flash-yellow.png",
+      "pngBytes": 25874,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "5733ff357ee1692bd99a12ae002da2c105b55f37049d809eba76abb7be65ddde"
+    },
+    {
+      "id": "note-pair-feet-yellow",
+      "category": "pairs",
+      "path": "pairs/note-pair-feet-yellow.svg",
+      "width": 1024,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1331,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pairs/note-pair-feet-yellow.png",
+      "pngBytes": 13331,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "944a5572b8a0c12f98e4889f97cb14a1ae74123cfbf531264283c0cecb447b38"
+    },
+    {
+      "id": "note-pair-fists-yellow",
+      "category": "pairs",
+      "path": "pairs/note-pair-fists-yellow.svg",
+      "width": 1024,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1488,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pairs/note-pair-fists-yellow.png",
+      "pngBytes": 18979,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "d98cdc8019133396d125ef9d76820888c12068f147277a16efad0d965b7b1ef1"
+    },
+    {
+      "id": "trail-purple",
+      "category": "effects",
+      "path": "effects/trail-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 609,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/trail-purple.png",
+      "pngBytes": 11950,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "0f49dd9be8c74035df0cd0dfd40c7b296b8548f22c41f06ab6ed30c6eefd7e29"
+    },
+    {
+      "id": "flash-purple",
+      "category": "effects",
+      "path": "effects/flash-purple.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 580,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "effects/flash-purple.png",
+      "pngBytes": 27380,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "62785838b90dce07e566e5bc675ec8274566326b5214ee12739551c71f8ea1ce"
+    },
+    {
+      "id": "note-pair-feet-purple",
+      "category": "pairs",
+      "path": "pairs/note-pair-feet-purple.svg",
+      "width": 1024,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1331,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pairs/note-pair-feet-purple.png",
+      "pngBytes": 12905,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "3dda8b38708339f3c103a65b482ca2cd58e2c1452b062c03fecbd2f0d7f2c615"
+    },
+    {
+      "id": "note-pair-fists-purple",
+      "category": "pairs",
+      "path": "pairs/note-pair-fists-purple.svg",
+      "width": 1024,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 1488,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "pairs/note-pair-fists-purple.png",
+      "pngBytes": 18492,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "19057a499d88c1d9d7e29a8f22a9f174ad9575e96f5914a11a07d44e1a6c07e1"
+    },
+    {
+      "id": "control-pause",
+      "category": "interface",
+      "path": "interface/control-pause.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 551,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "interface/control-pause.png",
+      "pngBytes": 8959,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "7e82248145acf4170239422895c37bdbc102de0dc734dc5a639a74a3cc737127"
+    },
+    {
+      "id": "control-play",
+      "category": "interface",
+      "path": "interface/control-play.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 529,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "interface/control-play.png",
+      "pngBytes": 9901,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "8cae9f1dfcbbb7633e2ab94ec504f1f7c16a6fcc7147dd27b8d7de2195f8d29f"
+    },
+    {
+      "id": "control-back",
+      "category": "interface",
+      "path": "interface/control-back.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 556,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "interface/control-back.png",
+      "pngBytes": 9216,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "3e6e3ec9c5f514cd2f6c4b027df3c1a4d631932ec1650dbb6069a1d33a061d0b"
+    },
+    {
+      "id": "control-camera",
+      "category": "interface",
+      "path": "interface/control-camera.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 673,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "interface/control-camera.png",
+      "pngBytes": 13219,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "c9e85a01e1ea43ad76fa7159c45b20d9aa91459d95674cfa4fee4670b24d19fd"
+    },
+    {
+      "id": "control-audio",
+      "category": "interface",
+      "path": "interface/control-audio.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 652,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "interface/control-audio.png",
+      "pngBytes": 14030,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "503c1d369c069937132fcf5e4bc06bdfe1fed93f407284350b7612782d2d8869"
+    },
+    {
+      "id": "control-retry",
+      "category": "interface",
+      "path": "interface/control-retry.svg",
+      "width": 512,
+      "height": 512,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 617,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "interface/control-retry.png",
+      "pngBytes": 14665,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "a6b4bdcb45b3d6853894c11bdd7fcf0aa202692c27a6003564cdce455682ae5b"
+    },
+    {
+      "id": "card-ready",
+      "category": "interface",
+      "path": "interface/card-ready.svg",
+      "width": 1280,
+      "height": 360,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 754,
+      "note": "Recurso de interfaz propuesto para la adaptación; texto español. No implementa su comportamiento.",
+      "png": "interface/card-ready.png",
+      "pngBytes": 18505,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "25caad2910fba2bc4f67cd862c74ba01de0b91e476945929d097bae19e10db4c"
+    },
+    {
+      "id": "card-go",
+      "category": "interface",
+      "path": "interface/card-go.svg",
+      "width": 1280,
+      "height": 360,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 730,
+      "note": "Recurso de interfaz propuesto para la adaptación; texto español. No implementa su comportamiento.",
+      "png": "interface/card-go.png",
+      "pngBytes": 14910,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "544edc0eb8f44f9acfc5367d615f5b9943f05ba78ec69c34aa06a7c983fcee48"
+    },
+    {
+      "id": "card-paused",
+      "category": "interface",
+      "path": "interface/card-paused.svg",
+      "width": 1280,
+      "height": 360,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 749,
+      "note": "Recurso de interfaz propuesto para la adaptación; texto español. No implementa su comportamiento.",
+      "png": "interface/card-paused.png",
+      "pngBytes": 17451,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "ac8e9fe120a70916e7f377dac93ccec18daeab4de80aad6b122d8cb9048e83a0"
+    },
+    {
+      "id": "card-complete",
+      "category": "interface",
+      "path": "interface/card-complete.svg",
+      "width": 1280,
+      "height": 360,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 748,
+      "note": "Recurso de interfaz propuesto para la adaptación; texto español. No implementa su comportamiento.",
+      "png": "interface/card-complete.png",
+      "pngBytes": 21915,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "5b9ae3eb37797f527aabc0adc31c66e200a4cd23772d716a5771f07ec6285797"
+    },
+    {
+      "id": "card-camera-lost",
+      "category": "interface",
+      "path": "interface/card-camera-lost.svg",
+      "width": 1280,
+      "height": 360,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 737,
+      "note": "Recurso de interfaz propuesto para la adaptación; texto español. No implementa su comportamiento.",
+      "png": "interface/card-camera-lost.png",
+      "pngBytes": 17141,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "748d45db50c5b91450ab19da319396e92c7173414dea1e587f988436a07b50df"
+    },
+    {
+      "id": "card-move-back",
+      "category": "interface",
+      "path": "interface/card-move-back.svg",
+      "width": 1280,
+      "height": 360,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 757,
+      "note": "Recurso de interfaz propuesto para la adaptación; texto español. No implementa su comportamiento.",
+      "png": "interface/card-move-back.png",
+      "pngBytes": 23001,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "39f1973a9ca3e8b174d9688bd47edd695495a56b73821abec230b589665a6075"
+    },
+    {
+      "id": "calibration-body-frame",
+      "category": "interface",
+      "path": "interface/calibration-body-frame.svg",
+      "width": 1024,
+      "height": 1024,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 582,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "interface/calibration-body-frame.png",
+      "pngBytes": 7596,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "ce57c14e48eae0b20c92a007d978b4a4ad2ef43eb81e5217e1b3e74e77398776"
+    },
+    {
+      "id": "combo-label",
+      "category": "hud",
+      "path": "hud/combo-label.svg",
+      "width": 512,
+      "height": 100,
+      "format": "SVG",
+      "alpha": true,
+      "bytes": 500,
+      "note": "Interpretación vectorial propia de la referencia; primera versión.",
+      "png": "hud/combo-label.png",
+      "pngBytes": 4612,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "colorSpace": "sRGB",
+      "sha256": "1c52805f91fd1966f71988392471cf90221a85d1d703118cd169608cac239ab6"
+    },
+    {
+      "id": "hit-foot",
+      "category": "audio",
+      "path": "audio/hit-foot.wav",
+      "format": "WAV",
+      "bytes": 19448,
+      "duration": 0.22,
+      "sampleRate": 44100,
+      "channels": 1,
+      "note": "Efecto sintético corto de feedback; volumen ajustable al integrarlo.",
+      "provenance": "Síntesis original mediante scripts/build-audio.py",
+      "bpm": null,
+      "sha256": "37209660b86104451ee4d0a530f31fb623cd56ce3c12329494aad4c5d700bf39"
+    },
+    {
+      "id": "hit-hand",
+      "category": "audio",
+      "path": "audio/hit-hand.wav",
+      "format": "WAV",
+      "bytes": 19448,
+      "duration": 0.22,
+      "sampleRate": 44100,
+      "channels": 1,
+      "note": "Efecto sintético corto de feedback; volumen ajustable al integrarlo.",
+      "provenance": "Síntesis original mediante scripts/build-audio.py",
+      "bpm": null,
+      "sha256": "e5632f596dbda21149138b3bbbfcd8e5e22a3e1a5a20f98967a546c796bf3b7b"
+    },
+    {
+      "id": "ui-click",
+      "category": "audio",
+      "path": "audio/ui-click.wav",
+      "format": "WAV",
+      "bytes": 19448,
+      "duration": 0.22,
+      "sampleRate": 44100,
+      "channels": 1,
+      "note": "Efecto sintético corto de feedback; volumen ajustable al integrarlo.",
+      "provenance": "Síntesis original mediante scripts/build-audio.py",
+      "bpm": null,
+      "sha256": "2f09e35089bf2673abb0adf72d1f63ce91f8adab56c35cc7c6cb0db9ab8f13ec"
+    },
+    {
+      "id": "miss",
+      "category": "audio",
+      "path": "audio/miss.wav",
+      "format": "WAV",
+      "bytes": 19448,
+      "duration": 0.22,
+      "sampleRate": 44100,
+      "channels": 1,
+      "note": "Efecto sintético corto de feedback; volumen ajustable al integrarlo.",
+      "provenance": "Síntesis original mediante scripts/build-audio.py",
+      "bpm": null,
+      "sha256": "275798adf43cf63d758c3252f68f20eff0f0c2cf6dd7303005fe50cee578e113"
+    },
+    {
+      "id": "countdown",
+      "category": "audio",
+      "path": "audio/countdown.wav",
+      "format": "WAV",
+      "bytes": 19448,
+      "duration": 0.22,
+      "sampleRate": 44100,
+      "channels": 1,
+      "note": "Efecto sintético corto de feedback; volumen ajustable al integrarlo.",
+      "provenance": "Síntesis original mediante scripts/build-audio.py",
+      "bpm": null,
+      "sha256": "4e27fee52948c15393e1e4e8a0ca6904b9d58a31ccf9e22ec8c52f2e284ddd41"
+    },
+    {
+      "id": "combo-up",
+      "category": "audio",
+      "path": "audio/combo-up.wav",
+      "format": "WAV",
+      "bytes": 70604,
+      "duration": 0.8,
+      "sampleRate": 44100,
+      "channels": 1,
+      "note": "Arpegio ascendente de feedback.",
+      "provenance": "Síntesis original mediante scripts/build-audio.py",
+      "bpm": null,
+      "sha256": "c2fb3aff67f0e4fd34ea7c41f7b9b4be903eda001d8af2405cf9047581f2396c"
+    },
+    {
+      "id": "session-complete",
+      "category": "audio",
+      "path": "audio/session-complete.wav",
+      "format": "WAV",
+      "bytes": 132344,
+      "duration": 1.5,
+      "sampleRate": 44100,
+      "channels": 1,
+      "note": "Arpegio de cierre de sesión propuesto.",
+      "provenance": "Síntesis original mediante scripts/build-audio.py",
+      "bpm": null,
+      "sha256": "b4e5961f09f5939a86edb8ee8bb0db0909a8a217d0df76614e71af05fa5a6f6b"
+    },
+    {
+      "id": "cardio-bed-120bpm",
+      "category": "audio",
+      "path": "audio/cardio-bed-120bpm.wav",
+      "format": "WAV",
+      "bytes": 1411244,
+      "duration": 16,
+      "sampleRate": 44100,
+      "channels": 1,
+      "note": "Loop rítmico provisional original: 8 compases de 4/4, 120 BPM, 16 s. No es la canción de referencia.",
+      "provenance": "Síntesis original mediante scripts/build-audio.py",
+      "bpm": 120,
+      "sha256": "e9a30e21efe1945c0cff88d7bb281604251c454b1377fa27b3a94fc9cad97f7b"
+    },
+    {
+      "id": "loop-fairground",
+      "category": "motion",
+      "path": "backgrounds/loop-fairground.mp4",
+      "poster": "backgrounds/loop-fairground.jpg",
+      "format": "MP4",
+      "width": 1280,
+      "height": 720,
+      "duration": 8,
+      "fps": 30,
+      "frames": 240,
+      "bytes": 5515341,
+      "alpha": false,
+      "note": "Fondo original en perspectiva, bucle de 8 s sin audio ni notas. Primera versión; geometría simplificada frente al referente.",
+      "provenance": "Composición HyperFrames local en videos/neon-tunnel",
+      "sha256": "67805bb8c2bcf61374a5be8d7ed241c2e2232593ab277dadac7c8d14688e2c30"
+    },
+    {
+      "id": "loop-diamonds",
+      "category": "motion",
+      "path": "backgrounds/loop-diamonds.mp4",
+      "poster": "backgrounds/loop-diamonds.jpg",
+      "format": "MP4",
+      "width": 1280,
+      "height": 720,
+      "duration": 8,
+      "fps": 30,
+      "frames": 240,
+      "bytes": 4608894,
+      "alpha": false,
+      "note": "Fondo original en perspectiva, bucle de 8 s sin audio ni notas. Primera versión; geometría simplificada frente al referente.",
+      "provenance": "Composición HyperFrames local en videos/neon-diamonds",
+      "sha256": "d6acf0a4662895d6446eb6273d1bbc66a4284f3771c81697e0f759475ac0a0b6"
+    },
+    {
+      "id": "loop-gears",
+      "category": "motion",
+      "path": "backgrounds/loop-gears.mp4",
+      "poster": "backgrounds/loop-gears.jpg",
+      "format": "MP4",
+      "width": 1280,
+      "height": 720,
+      "duration": 8,
+      "fps": 30,
+      "frames": 240,
+      "bytes": 7529711,
+      "alpha": false,
+      "note": "Fondo original en perspectiva, bucle de 8 s sin audio ni notas. Primera versión; geometría simplificada frente al referente.",
+      "provenance": "Composición HyperFrames local en videos/neon-gears",
+      "sha256": "0c5e42e9425f33bcd0682c17c9b4972848fb2153e5f8df7773d602a47ee4af1b"
+    },
+    {
+      "id": "wall-cue-left",
+      "category": "obstacles",
+      "path": "obstacles/wall-cue-left.svg",
+      "format": "SVG",
+      "width": 512,
+      "height": 512,
+      "bytes": 430,
+      "alpha": true,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "note": "Pared frontal con cheurones direccionales observados en el bloque de diamantes; el lado del símbolo indica desplazamiento propuesto, pendiente de reglas del futuro juego.",
+      "png": "obstacles/wall-cue-left.png",
+      "pngBytes": 4345,
+      "colorSpace": "sRGB",
+      "sha256": "54f5c2e69f617b0f4e21b990e963b22011d802d07ce76709475b8e2c6a54ba6e"
+    },
+    {
+      "id": "wall-cue-right",
+      "category": "obstacles",
+      "path": "obstacles/wall-cue-right.svg",
+      "format": "SVG",
+      "width": 512,
+      "height": 512,
+      "bytes": 458,
+      "alpha": true,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "note": "Pared frontal con cheurones direccionales observados en el bloque de diamantes; el lado del símbolo indica desplazamiento propuesto, pendiente de reglas del futuro juego.",
+      "png": "obstacles/wall-cue-right.png",
+      "pngBytes": 4327,
+      "colorSpace": "sRGB",
+      "sha256": "ce241b0f0b490dc03217f096d7eb6172773fe1faecef135c0d8d42f2c5c45306"
+    },
+    {
+      "id": "results-panel",
+      "category": "interface",
+      "path": "interface/results-panel.svg",
+      "format": "SVG",
+      "width": 1280,
+      "height": 720,
+      "bytes": 615,
+      "alpha": true,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "note": "Marco de resultados propuesto, sin valores inventados. Los datos se agregarían en la implementación futura.",
+      "sha256": "ca75c0d4e6ebf0588ead111b24cef7ecd9432f57a7f99df5d6abba61e8896534",
+      "png": "interface/results-panel.png",
+      "pngBytes": 29719,
+      "colorSpace": "sRGB"
+    },
+    {
+      "id": "progress-rail",
+      "category": "hud",
+      "path": "hud/progress-rail.svg",
+      "format": "SVG",
+      "width": 1280,
+      "height": 40,
+      "bytes": 258,
+      "alpha": true,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "note": "Recurso propio para la adaptación. Primera versión.",
+      "sha256": "e2e0a8ec55095432e76e103f71298c042aeef28befe37621596aafa51a18f283",
+      "png": "hud/progress-rail.png",
+      "pngBytes": 1048,
+      "colorSpace": "sRGB"
+    },
+    {
+      "id": "progress-fill",
+      "category": "hud",
+      "path": "hud/progress-fill.svg",
+      "format": "SVG",
+      "width": 1280,
+      "height": 40,
+      "bytes": 160,
+      "alpha": true,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "note": "Barra separada para recortar por progreso. El recorte y estado aún no están implementados.",
+      "sha256": "efd12457b5b2780af6c57bc525ba2a84b63f47ab2b49b9396893e0b0fd35f793",
+      "png": "hud/progress-fill.png",
+      "pngBytes": 656,
+      "colorSpace": "sRGB"
+    },
+    {
+      "id": "hurdle-low-jump",
+      "category": "obstacles",
+      "path": "obstacles/hurdle-low-jump.svg",
+      "format": "SVG",
+      "width": 1024,
+      "height": 256,
+      "bytes": 474,
+      "alpha": true,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "note": "Valla de salto baja o de paso agachado alta, reconstruida de las capturas nominales 103.783 s y 690.729 s. La altura se decide al componerla, no viene implementada en el asset.",
+      "png": "obstacles/hurdle-low-jump.png",
+      "pngBytes": 7764,
+      "colorSpace": "sRGB",
+      "sha256": "4a8891202f3f3b2cb709b00001f0bc94a81b33c1cc7ba8fb9e1d92cf6c54b9e1"
+    },
+    {
+      "id": "hurdle-high-duck",
+      "category": "obstacles",
+      "path": "obstacles/hurdle-high-duck.svg",
+      "format": "SVG",
+      "width": 1024,
+      "height": 256,
+      "bytes": 468,
+      "alpha": true,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "note": "Valla de salto baja o de paso agachado alta, reconstruida de las capturas nominales 103.783 s y 690.729 s. La altura se decide al componerla, no viene implementada en el asset.",
+      "png": "obstacles/hurdle-high-duck.png",
+      "pngBytes": 7733,
+      "colorSpace": "sRGB",
+      "sha256": "d762ad68a512994e2524aaa869f7501ab45e864a3117b6f72a402036faeb9bae"
+    },
+    {
+      "id": "pose-jump",
+      "category": "guides",
+      "path": "guides/pose-jump.svg",
+      "format": "SVG",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "bytes": 13724,
+      "note": "Silueta corporal continua propia, contorno blanco y fondo transparente. Acción orientativa; no es salida de tracking.",
+      "png": "guides/pose-jump.png",
+      "pngBytes": 14617,
+      "colorSpace": "sRGB",
+      "sha256": "089206d39d41228b4be13126d7099e715c8ccc4ea62ea92e26419e9990f2ce4e"
+    },
+    {
+      "id": "pose-duck",
+      "category": "guides",
+      "path": "guides/pose-duck.svg",
+      "format": "SVG",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "bytes": 17955,
+      "note": "Silueta corporal continua propia, contorno blanco y fondo transparente. Acción orientativa; no es salida de tracking.",
+      "png": "guides/pose-duck.png",
+      "pngBytes": 12592,
+      "colorSpace": "sRGB",
+      "sha256": "0ea729e0ef0fd6f949587cf86f89a29308d1c609bf1fbdcf7a33b7865f0e77d9"
+    },
+    {
+      "id": "pose-lean-left",
+      "category": "guides",
+      "path": "guides/pose-lean-left.svg",
+      "format": "SVG",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "bytes": 18405,
+      "note": "Silueta corporal continua propia, contorno blanco y fondo transparente. Acción orientativa; no es salida de tracking.",
+      "png": "guides/pose-lean-left.png",
+      "pngBytes": 15994,
+      "colorSpace": "sRGB",
+      "sha256": "6c6b78c382caf4711572a6d6e5e933e2dcd8b788360e24984688bafd3ef4fd81"
+    },
+    {
+      "id": "pose-lean-right",
+      "category": "guides",
+      "path": "guides/pose-lean-right.svg",
+      "format": "SVG",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "bytes": 18405,
+      "note": "Silueta corporal continua propia, contorno blanco y fondo transparente. Acción orientativa; no es salida de tracking.",
+      "png": "guides/pose-lean-right.png",
+      "pngBytes": 15901,
+      "colorSpace": "sRGB",
+      "sha256": "dd9c297e249fa47a3dbd3cc38ee2724e6392c6a0d2749c0726de5e5c61a30f07"
+    }
+  ]
+}

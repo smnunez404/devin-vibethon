@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(node)",
+      "Exec(npm ping)",
+      "Exec(curl)",
+      "Exec(mkdir)"
+    ]
+  }
+}

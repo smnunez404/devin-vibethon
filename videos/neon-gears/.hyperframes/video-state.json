@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "historyId": "fbaf033e-8c91-4a25-957a-4d388c90d7ec",
+  "currentRevision": null,
+  "pendingChanges": false,
+  "files": {
+    "AGENTS.md": {
+      "hash": "1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5",
+      "content": "C:\\Users\\qwert\\.cache\\hyperframes\\history\\fbaf033e-8c91-4a25-957a-4d388c90d7ec\\blobs\\1d\\1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5"
+    },
+    "BRIEF.md": {
+      "hash": "1600376549835182e888f3bf148b50d4e6e042765ebc24181240fc199cc6e221",
+      "content": "C:\\Users\\qwert\\.cache\\hyperframes\\history\\fbaf033e-8c91-4a25-957a-4d388c90d7ec\\blobs\\16\\1600376549835182e888f3bf148b50d4e6e042765ebc24181240fc199cc6e221"
+    },
+    "CLAUDE.md": {
+      "hash": "1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5",
+      "content": "C:\\Users\\qwert\\.cache\\hyperframes\\history\\fbaf033e-8c91-4a25-957a-4d388c90d7ec\\blobs\\1d\\1d4f0c8ca2507b94fd7c9df709fff01416adbd51a0f922b9d6ed2f40129147d5"
+    },
+    "STORYBOARD.md": {
+      "hash": "db929192ff8bac872fd97ba22f7fd46309b2c369e94f578a43b56e77ab5a2d87",
+      "content": "C:\\Users\\qwert\\.cache\\hyperframes\\history\\fbaf033e-8c91-4a25-957a-4d388c90d7ec\\blobs\\db\\db929192ff8bac872fd97ba22f7fd46309b2c369e94f578a43b56e77ab5a2d87"
+    },
+    "assets/gsap.min.js": {
+      "hash": "92bb9a96476f983d212a2bc4f54c889039c1696dd4461d40a736860938570fbb",
+      "content": "C:\\Users\\qwert\\.cache\\hyperframes\\history\\fbaf033e-8c91-4a25-957a-4d388c90d7ec\\blobs\\92\\92bb9a96476f983d212a2bc4f54c889039c1696dd4461d40a736860938570fbb"
+    },
+    "design.md": {
+      "hash": "d87460fdbfeb2dc42a13298ac5eb3a0489bb5fbe9ec4338c5d0c1c5c16fee5ec",
+      "content": "C:\\Users\\qwert\\.cache\\hyperframes\\history\\fbaf033e-8c91-4a25-957a-4d388c90d7ec\\blobs\\d8\\d87460fdbfeb2dc42a13298ac5eb3a0489bb5fbe9ec4338c5d0c1c5c16fee5ec"
+    },
+    "hyperframes.json": {
+      "hash": "ad5dadeef78a520800a9e5cdd27a92ff5ac37f11b6a07f611b6b52b9f8c79a17",
+      "content": "C:\\Users\\qwert\\.cache\\hyperframes\\history\\fbaf033e-8c91-4a25-957a-4d388c90d7ec\\blobs\\ad\\ad5dadeef78a520800a9e5cdd27a92ff5ac37f11b6a07f611b6b52b9f8c79a17"
+    },
+    "index.html": {
+      "hash": "29e155f93b4c715cb6f91ff0dcd797f1983b6e54f81c4ccaecf75daf50d009c2",
+      "content": "C:\\Users\\qwert\\.cache\\hyperframes\\history\\fbaf033e-8c91-4a25-957a-4d388c90d7ec\\blobs\\29\\29e155f93b4c715cb6f91ff0dcd797f1983b6e54f81c4ccaecf75daf50d009c2"
+    },
+    "package.json": {
+      "hash": "734d8b1fca1a904eb2fdfec97fa447a61ed5417dc9d5def4020f063b044d6960",
+      "content": "C:\\Users\\qwert\\.cache\\hyperframes\\history\\fbaf033e-8c91-4a25-957a-4d388c90d7ec\\blobs\\73\\734d8b1fca1a904eb2fdfec97fa447a61ed5417dc9d5def4020f063b044d6960"
+    }
+  },
+  "revisions": {},
+  "checks": {
+    "latest": {
+      "revision": null,
+      "id": "625a7ad9-8518-4eb9-9d1b-600eedd4e59a"
+    },
+    "revisions": {},
+    "unversioned": [
+      {
+        "id": "625a7ad9-8518-4eb9-9d1b-600eedd4e59a",
+        "scope": "project",
+        "report": "C:\\Users\\qwert\\Documents\\devin-vibethon\\videos\\neon-gears\\.hyperframes\\artifacts\\checks\\625a7ad9-8518-4eb9-9d1b-600eedd4e59a.json",
+        "metadata": {
+          "ok": true,
+          "browserSkipped": false,
+          "options": {
+            "samples": 9,
+            "atTransitions": false,
+            "maxIssues": 80,
+            "collapseStatic": true,
+            "tolerance": 2,
+            "timeout": 3000,
+            "contrast": true,
+            "strict": false,
+            "snapshots": false,
+            "browserGpuMode": "auto"
+          }
+        },
+        "createdAt": 1792094908796,
+        "contentHash": "8b90678839a558c90d19723bbb4a2d88e549937316e2caf699a8dc3082570d32",
+        "revision": null,
+        "inputFingerprint": "77cc56a9ab650516809048b99d2287721d27e31149afcbc701dca41c1e8d18ad",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  },
+  "snapshots": {
+    "latest": null,
+    "revisions": {},
+    "unversioned": []
+  },
+  "renders": {
+    "latest": {
+      "id": "6da68b24-8f2a-4e19-a14f-8cd0073ada7b",
+      "completedAt": 1792094969854,
+      "output": "C:\\Users\\qwert\\Documents\\devin-vibethon\\assets\\v001\\backgrounds\\loop-gears.mp4",
+      "status": "completed",
+      "revision": null
+    },
+    "retainedRevisions": []
+  },
+  "pendingArtifactCleanup": []
+}

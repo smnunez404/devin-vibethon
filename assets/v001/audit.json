@@ -1,0 +1,1575 @@
+{
+  "assets": 135,
+  "errors": [],
+  "checks": [
+    {
+      "id": "note-foot-left-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-foot-right-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-fist-left-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-fist-right-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-hand-left-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-hand-right-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-arrow-left-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-arrow-right-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pad-active-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "impact-ring-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "impact-fragments-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        224
+      ]
+    },
+    {
+      "id": "wall-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-foot-left-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-foot-right-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-fist-left-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-fist-right-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-hand-left-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-hand-right-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-arrow-left-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-arrow-right-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pad-active-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "impact-ring-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "impact-fragments-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        224
+      ]
+    },
+    {
+      "id": "wall-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-foot-left-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-foot-right-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-fist-left-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-fist-right-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-hand-left-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-hand-right-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-arrow-left-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-arrow-right-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pad-active-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "impact-ring-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "impact-fragments-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        224
+      ]
+    },
+    {
+      "id": "wall-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-foot-left-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-foot-right-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-fist-left-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-fist-right-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-hand-left-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-hand-right-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-arrow-left-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-arrow-right-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pad-active-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "impact-ring-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "impact-fragments-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        224
+      ]
+    },
+    {
+      "id": "wall-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pad-idle",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "track-transparent",
+      "format": "PNG",
+      "size": [
+        1920,
+        1080
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pose-neutral",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pose-arms-up",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pose-punch-left",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pose-punch-right",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pose-squat",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pose-step-left",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pose-step-right",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "guide-panel",
+      "format": "PNG",
+      "size": [
+        320,
+        560
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "rating-nice",
+      "format": "PNG",
+      "size": [
+        800,
+        160
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "rating-great",
+      "format": "PNG",
+      "size": [
+        800,
+        160
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "rating-awesome",
+      "format": "PNG",
+      "size": [
+        800,
+        160
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "rating-unstoppable",
+      "format": "PNG",
+      "size": [
+        800,
+        160
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "rating-perfect",
+      "format": "PNG",
+      "size": [
+        800,
+        160
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "rating-miss",
+      "format": "PNG",
+      "size": [
+        800,
+        160
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "digit-0",
+      "format": "PNG",
+      "size": [
+        192,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "digit-1",
+      "format": "PNG",
+      "size": [
+        192,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "digit-2",
+      "format": "PNG",
+      "size": [
+        192,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "digit-3",
+      "format": "PNG",
+      "size": [
+        192,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "digit-4",
+      "format": "PNG",
+      "size": [
+        192,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "digit-5",
+      "format": "PNG",
+      "size": [
+        192,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "digit-6",
+      "format": "PNG",
+      "size": [
+        192,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "digit-7",
+      "format": "PNG",
+      "size": [
+        192,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "digit-8",
+      "format": "PNG",
+      "size": [
+        192,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "digit-9",
+      "format": "PNG",
+      "size": [
+        192,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "background-fairground",
+      "format": "PNG",
+      "size": [
+        1920,
+        1080
+      ],
+      "alpha": [
+        255,
+        255
+      ]
+    },
+    {
+      "id": "background-diamonds",
+      "format": "PNG",
+      "size": [
+        1920,
+        1080
+      ],
+      "alpha": [
+        255,
+        255
+      ]
+    },
+    {
+      "id": "background-gears",
+      "format": "PNG",
+      "size": [
+        1920,
+        1080
+      ],
+      "alpha": [
+        255,
+        255
+      ]
+    },
+    {
+      "id": "icon-foot-left",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "icon-foot-right",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "icon-fist-left",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "icon-fist-right",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "icon-hand-left",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "icon-hand-right",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "trail-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        191
+      ]
+    },
+    {
+      "id": "flash-cyan",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-pair-feet-cyan",
+      "format": "PNG",
+      "size": [
+        1024,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-pair-fists-cyan",
+      "format": "PNG",
+      "size": [
+        1024,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "trail-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        191
+      ]
+    },
+    {
+      "id": "flash-pink",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-pair-feet-pink",
+      "format": "PNG",
+      "size": [
+        1024,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-pair-fists-pink",
+      "format": "PNG",
+      "size": [
+        1024,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "trail-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        191
+      ]
+    },
+    {
+      "id": "flash-yellow",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-pair-feet-yellow",
+      "format": "PNG",
+      "size": [
+        1024,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-pair-fists-yellow",
+      "format": "PNG",
+      "size": [
+        1024,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "trail-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        191
+      ]
+    },
+    {
+      "id": "flash-purple",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-pair-feet-purple",
+      "format": "PNG",
+      "size": [
+        1024,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "note-pair-fists-purple",
+      "format": "PNG",
+      "size": [
+        1024,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "control-pause",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "control-play",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "control-back",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "control-camera",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "control-audio",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "control-retry",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "card-ready",
+      "format": "PNG",
+      "size": [
+        1280,
+        360
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "card-go",
+      "format": "PNG",
+      "size": [
+        1280,
+        360
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "card-paused",
+      "format": "PNG",
+      "size": [
+        1280,
+        360
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "card-complete",
+      "format": "PNG",
+      "size": [
+        1280,
+        360
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "card-camera-lost",
+      "format": "PNG",
+      "size": [
+        1280,
+        360
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "card-move-back",
+      "format": "PNG",
+      "size": [
+        1280,
+        360
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "calibration-body-frame",
+      "format": "PNG",
+      "size": [
+        1024,
+        1024
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "combo-label",
+      "format": "PNG",
+      "size": [
+        512,
+        100
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "hit-foot",
+      "format": "WAV",
+      "duration": 0.22,
+      "peak": 25536,
+      "rms": 6349.254738598974
+    },
+    {
+      "id": "hit-hand",
+      "format": "WAV",
+      "duration": 0.22,
+      "peak": 25335,
+      "rms": 6302.829351804756
+    },
+    {
+      "id": "ui-click",
+      "format": "WAV",
+      "duration": 0.22,
+      "peak": 25496,
+      "rms": 6309.553592872612
+    },
+    {
+      "id": "miss",
+      "format": "WAV",
+      "duration": 0.22,
+      "peak": 25345,
+      "rms": 6369.010722092421
+    },
+    {
+      "id": "countdown",
+      "format": "WAV",
+      "duration": 0.22,
+      "peak": 25496,
+      "rms": 6309.147764502504
+    },
+    {
+      "id": "combo-up",
+      "format": "WAV",
+      "duration": 0.8,
+      "peak": 21785,
+      "rms": 5338.503528694037
+    },
+    {
+      "id": "session-complete",
+      "format": "WAV",
+      "duration": 1.5,
+      "peak": 19957,
+      "rms": 4765.733052652643
+    },
+    {
+      "id": "cardio-bed-120bpm",
+      "format": "WAV",
+      "duration": 16.0,
+      "peak": 26213,
+      "rms": 2778.08675350858
+    },
+    {
+      "id": "loop-fairground",
+      "format": "MP4",
+      "decodedFrames": 240,
+      "meanAdjacentDelta": 1.7569782465519912,
+      "seamDelta": 1.7836342592592593,
+      "seamToMeanRatio": 1.0151715098121332
+    },
+    {
+      "id": "loop-diamonds",
+      "format": "MP4",
+      "decodedFrames": 240,
+      "meanAdjacentDelta": 1.688963660313033,
+      "seamDelta": 1.7716203703703703,
+      "seamToMeanRatio": 1.048939306392192
+    },
+    {
+      "id": "loop-gears",
+      "format": "MP4",
+      "decodedFrames": 240,
+      "meanAdjacentDelta": 1.747189969781497,
+      "seamDelta": 1.803449074074074,
+      "seamToMeanRatio": 1.0321997637724607
+    },
+    {
+      "id": "wall-cue-left",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "wall-cue-right",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "results-panel",
+      "format": "PNG",
+      "size": [
+        1280,
+        720
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "progress-rail",
+      "format": "PNG",
+      "size": [
+        1280,
+        40
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "progress-fill",
+      "format": "PNG",
+      "size": [
+        1280,
+        40
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "hurdle-low-jump",
+      "format": "PNG",
+      "size": [
+        1024,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "hurdle-high-duck",
+      "format": "PNG",
+      "size": [
+        1024,
+        256
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pose-jump",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pose-duck",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pose-lean-left",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "pose-lean-right",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": [
+        0,
+        255
+      ]
+    }
+  ],
+  "scope": "Integridad, dimensiones, alfa, picos de audio y movimiento/costura. No sustituye revisión visual o escucha."
+}

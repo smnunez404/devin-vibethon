@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Devin Vibethon — Hito 1</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Devin Vibethon</h1>
+      <p class="subtitle">Hito 1 · cámara → pose → calibración → gesto → reacción</p>
+    </header>
+
+    <main>
+      <section class="stage">
+        <canvas id="scene" width="1280" height="720"></canvas>
+        <div id="big-card" class="big-card hidden"></div>
+        <div id="start-card" class="start-card">
+          <h2>DEVIN VIBETHON</h2>
+          <p class="tagline">Ritmo y cardio controlados por tu cámara</p>
+          <ol class="steps">
+            <li>Permite el acceso a la cámara</li>
+            <li>Ponte a cuerpo completo y calibra</li>
+            <li>Golpea con manos y pies · esquiva, agáchate y salta</li>
+          </ol>
+          <button id="btn-hero" class="hero">Iniciar cámara</button>
+          <p id="hero-hint" class="hint">Necesitas una webcam · todo se procesa en tu navegador</p>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="controls">
+          <label for="device-select">Cámara</label>
+          <select id="device-select" disabled></select>
+          <button id="btn-start">Iniciar cámara</button>
+          <button id="btn-calibrate" disabled>Calibrar</button>
+          <button id="btn-play" disabled>Jugar</button>
+          <label for="scene-select">Escenario</label>
+          <select id="scene-select">
+            <option value="loop-fairground" selected>Feria</option>
+            <option value="loop-diamonds">Diamantes</option>
+            <option value="loop-gears">Engranajes</option>
+          </select>
+          <label for="length-select">Sesión</label>
+          <select id="length-select">
+            <option value="32">Corta (16 s)</option>
+            <option value="64" selected>Normal (32 s)</option>
+          </select>
+        </div>
+
+        <div class="status-grid">
+          <div class="chip" id="chip-permission">Permiso: pendiente</div>
+          <div class="chip" id="chip-pose">Pose: sin datos</div>
+          <div class="chip" id="chip-hands">Manos: —</div>
+          <div class="chip" id="chip-feet">Pies: —</div>
+          <div class="chip" id="chip-lean">Esquiva: —</div>
+          <div class="chip" id="chip-duck">Agachado: —</div>
+        </div>
+
+        <div class="metrics">
+          <div><span>FPS</span><strong id="m-fps">–</strong></div>
+          <div><span>Inferencia</span><strong id="m-infer">–</strong></div>
+          <div><span>Cámara</span><strong id="m-cam">–</strong></div>
+          <div><span>Modelo</span><strong id="m-model">–</strong></div>
+          <div><span>Aciertos izq.</span><strong id="m-left">0</strong></div>
+          <div><span>Aciertos der.</span><strong id="m-right">0</strong></div>
+          <div><span>Combo</span><strong id="m-combo">0</strong></div>
+          <div><span>Último juicio</span><strong id="m-last">–</strong></div>
+        </div>
+
+        <ol id="log" class="log"></ol>
+      </aside>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
