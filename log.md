@@ -107,3 +107,4 @@ Registro append-only de operaciones sobre este proyecto. Añadir entradas nuevas
 
 - `scene.ts`: nueva capa `drawPositionGuide` visible con cámara a pantalla completa (estados live/calibrating/ready): zona delimitada con esquinas tipo viewfinder, silueta fantasma de pose neutra y marcas CABEZA/MANO/MANO/PIE/PIE que pasan a verde al encajar el landmark correspondiente (tolerancia por radio); mensaje de estado "POSICIÓN CORRECTA" o instrucción de ajuste.
 - Redesplegado en GitHub Pages.
+- Corrección (revisión): las marcas de manos/pies comprobaban el landmark del lado opuesto (índices anatómicos intercambiados respecto a las coords de imagen), así que nunca pasaban a verde en una pose natural. Ahora usan `LM.*` con el lado correcto (MANO/PIE IZQ-DER) y la tolerancia se evalúa en píxeles para que el círculo dibujado sea el área real de aceptación.

@@ -1,4 +1,4 @@
-import { BONES, type Landmark } from '../types';
+import { BONES, LM, type Landmark } from '../types';
 import { isObstacle, OBSTACLE_IMAGE, OBSTACLE_POSE, type Note } from '../rhythm/beatmap';
 import type { Rating } from '../rhythm/judgement';
 
@@ -342,17 +342,20 @@ export class Scene {
     const zy1 = Y(zone.y1);
 
     // Marcas objetivo: landmark, posición esperada y radio de tolerancia.
+    // Los índices son anatómicos: en coords de imagen el lado propio izquierdo
+    // cae a x > 0.5 (en la vista espejo se ve a la izquierda de pantalla).
     const targets = [
-      { idx: 0, tx: 0.5, ty: 0.15, r: 0.075, label: 'CABEZA' },
-      { idx: 15, tx: 0.34, ty: 0.58, r: 0.07, label: 'MANO' },
-      { idx: 16, tx: 0.66, ty: 0.58, r: 0.07, label: 'MANO' },
-      { idx: 27, tx: 0.44, ty: 0.88, r: 0.06, label: 'PIE' },
-      { idx: 28, tx: 0.56, ty: 0.88, r: 0.06, label: 'PIE' },
+      { idx: LM.nose, tx: 0.5, ty: 0.15, r: 0.075, label: 'CABEZA' },
+      { idx: LM.leftWrist, tx: 0.66, ty: 0.58, r: 0.07, label: 'MANO IZQ' },
+      { idx: LM.rightWrist, tx: 0.34, ty: 0.58, r: 0.07, label: 'MANO DER' },
+      { idx: LM.leftAnkle, tx: 0.56, ty: 0.88, r: 0.06, label: 'PIE IZQ' },
+      { idx: LM.rightAnkle, tx: 0.44, ty: 0.88, r: 0.06, label: 'PIE DER' },
     ];
     const status = targets.map((t) => {
       const lm = landmarks?.[t.idx];
       if (!lm || (lm.visibility ?? 0) < 0.4) return 'off';
-      return Math.hypot(lm.x - t.tx, lm.y - t.ty) <= t.r ? 'in' : 'near';
+      // Distancia en píxeles: el círculo dibujado es el área de tolerancia real.
+      return Math.hypot((lm.x - t.tx) * dw, (lm.y - t.ty) * dh) <= t.r * dw ? 'in' : 'near';
     });
     const allIn = status.every((s) => s === 'in');
     const zoneColor = allIn ? '#3eff8a' : '#29e6ff';
