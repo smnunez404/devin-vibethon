@@ -21,23 +21,78 @@ body {
   color: var(--text);
 }
 
-header {
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--edge);
-}
-
-h1 { margin: 0; font-size: 20px; letter-spacing: 0.06em; }
-.subtitle { margin: 2px 0 0; color: var(--dim); font-size: 13px; }
-
 main {
   display: grid;
   grid-template-columns: 1fr 300px;
   gap: 12px;
-  padding: 12px 20px;
+  padding: 10px 16px;
   align-items: start;
 }
 
+main.panel-collapsed {
+  grid-template-columns: 1fr 40px;
+}
+
+main.panel-collapsed .panel {
+  padding: 8px 6px;
+  align-items: center;
+}
+
+main.panel-collapsed .panel-body {
+  display: none;
+}
+
+.panel-toggle {
+  align-self: flex-end;
+  padding: 2px 9px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+main.panel-collapsed .panel-toggle {
+  align-self: center;
+}
+
 .stage { position: relative; }
+
+.stage-topbar {
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.stage-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  pointer-events: auto;
+}
+.stage-controls.hidden { display: none; }
+
+.guide-status {
+  flex: 1;
+  min-width: 0;
+  padding-top: 7px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 15px;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
+}
+.guide-status.ok { color: var(--ok); }
+.stage-controls label { color: var(--dim); font-size: 12px; }
+.stage-controls select,
+.stage-controls button {
+  padding: 6px 9px;
+  font-size: 12px;
+  background: rgba(20, 20, 31, 0.85);
+}
 
 canvas#scene {
   width: 100%;

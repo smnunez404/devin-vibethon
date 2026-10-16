@@ -42,9 +42,12 @@ export async function startCamera(deviceId?: string): Promise<CameraHandle> {
   }
   const constraints: MediaStreamConstraints = {
     video: {
-      width: { ideal: 1280 },
-      height: { ideal: 720 },
-      frameRate: { ideal: 60, max: 60 },
+      // 640x480@30: cámaras genéricas baratas no sostienen 720p60 y entregan
+      // frames MJPEG parciales que se ven como bandas grises parpadeantes.
+      // 480p sobra para el landmarker (su entrada interna es menor).
+      width: { ideal: 640 },
+      height: { ideal: 480 },
+      frameRate: { ideal: 30, max: 30 },
       ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
     },
     audio: false,
@@ -66,4 +69,5 @@ export async function startCamera(deviceId?: string): Promise<CameraHandle> {
 
 export function stopCamera(handle: CameraHandle | null): void {
   handle?.stream.getTracks().forEach((t) => t.stop());
+  if (handle) handle.video.srcObject = null;
 }

@@ -60,6 +60,19 @@ interface Frag {
   start: number;
 }
 
+interface Pt {
+  x: number;
+  y: number;
+}
+
+/** Marca que queda estampada en el pad al acertar una nota (como en la referencia). */
+interface Stamp {
+  lane: number;
+  kind: Note['kind'];
+  color: PadColor;
+  start: number;
+}
+
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -74,18 +87,31 @@ export class Scene {
   private images = new Map<string, HTMLImageElement>();
   private rings: Ring[] = [];
   private frags: Frag[] = [];
+  private stamps: Stamp[] = [];
   private padFlash = new Map<number, number>(); // pad -> timestamp de expiración
   private drawRect = { x: 0, y: 0, w: 0, h: 0 };
   /** Fondo del modo juego (loop MP4 con pista). Si está, la cámara va a PiP. */
   private bgVideo: HTMLVideoElement | null = null;
+  /** Si existe, el mensaje de estado de la guía se publica aquí en vez de en canvas. */
+  statusEl: HTMLElement | null = null;
 
   setBackground(bg: HTMLVideoElement | null): void {
     this.bgVideo = bg;
   }
 
+  /** Geometría compartida para los dos cuadros verticales de la izquierda (guía arriba, cámara abajo). */
+  private sideBoxMetrics(): { x: number; w: number; h: number; topY: number; bottomY: number } {
+    const w = this.canvas.width * 0.14;
+    const h = w * 1.75; // proporción vertical 320×560 del guide-panel
+    const x = this.canvas.width * 0.03;
+    const topY = this.canvas.height * 0.04;
+    const gap = this.canvas.height * 0.025;
+    return { x, w, h, topY, bottomY: topY + h + gap };
+  }
+
   private pipRect(): { x: number; y: number; w: number; h: number } {
-    const w = this.canvas.width * 0.16;
-    return { x: 16, y: this.canvas.height - w * 0.5625 - 16, w, h: w * 0.5625 };
+    const { x, w, h, bottomY } = this.sideBoxMetrics();
+    return { x, y: bottomY, w, h };
   }
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -118,6 +144,7 @@ export class Scene {
       jobs.push([`obs-${kind}`, `${base}/${rel}`]);
     }
     jobs.push(['guide-panel', `${base}/guides/guide-panel.png`]);
+    jobs.push(['pose-neutral', `${base}/guides/pose-neutral.png`]);
     jobs.push(['results-panel', `${base}/interface/results-panel.png`]);
     jobs.push(['progress-rail', `${base}/hud/progress-rail.png`]);
     jobs.push(['progress-fill', `${base}/hud/progress-fill.png`]);
@@ -142,6 +169,25 @@ export class Scene {
     }
   }
 
+  /**
+   * Deja la nota estampada un momento (~1.5 s) donde se resolvió para que se
+   * vea qué se tocó: los pies sobre su pad, los puños a su altura de llegada.
+   * Los obstáculos marcan los pads de su lado con un ✓.
+   */
+  stampHit(note: Note): void {
+    const now = performance.now();
+    const lanes = isObstacle(note.kind)
+      ? note.kind === 'wall-left'
+        ? [0, 1]
+        : note.kind === 'wall-right'
+          ? [2, 3]
+          : [0, 1, 2, 3]
+      : [note.lane];
+    for (const lane of lanes) {
+      this.stamps.push({ lane, kind: note.kind, color: PAD_COLORS[lane], start: now });
+    }
+  }
+
   private padRect(i: number): { x: number; y: number; w: number; h: number } {
     const { width, height } = this.canvas;
     const padW = width * 0.11;
@@ -156,6 +202,80 @@ export class Scene {
   private padCenter(i: number): { x: number; y: number } {
     const r = this.padRect(i);
     return { x: r.x + r.w / 2, y: r.y + r.h / 2 };
+  }
+
+  /** Altura a la que llegan las notas de puño (cara/pecho), como en la referencia. */
+  private handNoteY(): number {
+    return this.canvas.height * 0.3;
+  }
+
+  /**
+   * Trapecio de una placa sobre la pista: el borde frontal avanza a la
+   * profundidad `e` (1 = sobre el pad) y el trasero queda recogido hacia el
+   * punto de fuga. Como los bordes laterales convergen al vp, la placa se ve
+   * inclinada en los carriles de los extremos, igual que en la referencia.
+   */
+  private floorTileQuad(
+    pad: { x: number; y: number; w: number; h: number },
+    e: number,
+  ): { tl: Pt; tr: Pt; br: Pt; bl: Pt } {
+    const vp = this.vanishingPoint();
+    const LEN = 0.2; // profundidad de la placa sobre la pista
+    const eB = Math.max(0.001, e - LEN);
+    const X = (x: number, d: number) => vp.x + (x - vp.x) * d;
+    const Y = (d: number) => vp.y + (pad.y + pad.h - vp.y) * d;
+    return {
+      tl: { x: X(pad.x, eB), y: Y(eB) },
+      tr: { x: X(pad.x + pad.w, eB), y: Y(eB) },
+      br: { x: X(pad.x + pad.w, e), y: Y(e) },
+      bl: { x: X(pad.x, e), y: Y(e) },
+    };
+  }
+
+  /**
+   * Dibuja una imagen dentro de un cuadrilátero dividiéndolo en dos triángulos
+   * y aplicando a cada uno el mapeo afín exacto de su triángulo de origen.
+   * Sin costuras ni bandas (a diferencia del mapeo por tiras).
+   */
+  private drawImageQuad(
+    img: HTMLImageElement,
+    q: { tl: Pt; tr: Pt; br: Pt; bl: Pt },
+  ): void {
+    const { ctx } = this;
+    const iw = img.width;
+    const ih = img.height;
+    const tris: Array<[Pt, Pt, Pt, Pt, Pt, Pt]> = [
+      [q.tl, q.tr, q.br, { x: 0, y: 0 }, { x: iw, y: 0 }, { x: iw, y: ih }],
+      [q.tl, q.br, q.bl, { x: 0, y: 0 }, { x: iw, y: ih }, { x: 0, y: ih }],
+    ];
+    for (const [d0, d1, d2, s0, s1, s2] of tris) {
+      const denom = s0.x * (s1.y - s2.y) + s1.x * (s2.y - s0.y) + s2.x * (s0.y - s1.y);
+      if (!denom) continue;
+      const a = (d0.x * (s1.y - s2.y) + d1.x * (s2.y - s0.y) + d2.x * (s0.y - s1.y)) / denom;
+      const c = (d0.x * (s2.x - s1.x) + d1.x * (s0.x - s2.x) + d2.x * (s1.x - s0.x)) / denom;
+      const e =
+        (d0.x * (s1.x * s2.y - s2.x * s1.y) +
+          d1.x * (s2.x * s0.y - s0.x * s2.y) +
+          d2.x * (s0.x * s1.y - s1.x * s0.y)) /
+        denom;
+      const b = (d0.y * (s1.y - s2.y) + d1.y * (s2.y - s0.y) + d2.y * (s0.y - s1.y)) / denom;
+      const d = (d0.y * (s2.x - s1.x) + d1.y * (s0.x - s2.x) + d2.y * (s1.x - s0.x)) / denom;
+      const f =
+        (d0.y * (s1.x * s2.y - s2.x * s1.y) +
+          d1.y * (s2.x * s0.y - s0.x * s2.y) +
+          d2.y * (s0.x * s1.y - s1.x * s0.y)) /
+        denom;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(d0.x, d0.y);
+      ctx.lineTo(d1.x, d1.y);
+      ctx.lineTo(d2.x, d2.y);
+      ctx.closePath();
+      ctx.clip();
+      ctx.setTransform(a, b, c, d, e, f);
+      ctx.drawImage(img, 0, 0);
+      ctx.restore();
+    }
   }
 
   draw(
@@ -177,32 +297,38 @@ export class Scene {
       this.drawVideoCover(this.bgVideo, { x: 0, y: 0, w: W, h: H }, false, 1);
     }
 
-    // Cámara: a pantalla completa (calibración) o en PiP (juego).
+    // Cámara a pantalla completa (fuera del juego): usa "contain" para no recortar el cuerpo.
     const camRect = this.bgVideo ? this.pipRect() : null;
-    if (video && video.videoWidth > 0) {
-      const rect = camRect ?? { x: 0, y: 0, w: W, h: H };
-      this.drawVideoCover(video, rect, true, camRect ? 0.9 : 0.85);
-      if (camRect) {
-        ctx.strokeStyle = 'rgba(41,230,255,0.6)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
-      }
-      this.drawRect = this.fitRect(video, rect);
+    if (!camRect && video && video.videoWidth > 0) {
+      const rect = { x: 0, y: 0, w: W, h: H };
+      this.drawVideoCover(video, rect, true, 0.85, true);
+      this.drawRect = this.fitRect(video, rect, true);
+      this.drawPositionGuide(landmarks);
+      if (landmarks) this.drawSkeleton(landmarks, null);
+    } else if (this.statusEl?.textContent) {
+      this.statusEl.textContent = '';
+      this.statusEl.classList.remove('ok');
     }
 
-    // Guía de posicionamiento (solo con cámara a pantalla completa, fuera del juego).
-    if (!camRect && video) this.drawPositionGuide(landmarks);
-    // Esqueleto sobre el espacio de la cámara (fullscreen o PiP).
-    if (landmarks && video) this.drawSkeleton(landmarks);
-    if (camRect) {
-      // En modo juego las notas y obstáculos van sobre el fondo.
-      if (game) this.drawNotes(game);
-    } else if (game) {
-      this.drawNotes(game);
-    }
+    // Los pads van bajo las notas: la placa de pie aterriza sobre su cuadrado.
     this.drawPads();
+    if (game) this.drawNotes(game);
+    this.drawStamps();
     this.drawRings();
     this.drawFrags();
+
+    // En juego: cámara en vertical (PiP) debajo del cuadro vertical de la silueta guía.
+    if (camRect && video && video.videoWidth > 0) {
+      this.drawVideoCover(video, camRect, true, 0.92, false);
+      this.drawRect = this.fitRect(video, camRect, false);
+      if (landmarks) this.drawSkeleton(landmarks, camRect);
+      ctx.save();
+      ctx.strokeStyle = 'rgba(232,232,240,0.55)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(camRect.x, camRect.y, camRect.w, camRect.h);
+      ctx.restore();
+    }
+
     if (game) {
       this.drawGuide(game);
       this.drawRating(game);
@@ -288,15 +414,18 @@ export class Scene {
     ctx.restore();
   }
 
-  /** Video "cover" dentro de un rect; mirror opcional. */
+  /** Video dentro de un rect: "cover" (rellena recortando) o "contain" (encaja). Mirror opcional. */
   private drawVideoCover(
     video: HTMLVideoElement,
     rect: { x: number; y: number; w: number; h: number },
     mirror: boolean,
     alpha: number,
+    contain = false,
   ): void {
     const { ctx } = this;
-    const scale = Math.max(rect.w / video.videoWidth, rect.h / video.videoHeight);
+    const scale = contain
+      ? Math.min(rect.w / video.videoWidth, rect.h / video.videoHeight)
+      : Math.max(rect.w / video.videoWidth, rect.h / video.videoHeight);
     const dw = video.videoWidth * scale;
     const dh = video.videoHeight * scale;
     const dx = rect.x + (rect.w - dw) / 2;
@@ -315,8 +444,14 @@ export class Scene {
     ctx.restore();
   }
 
-  private fitRect(video: HTMLVideoElement, rect: { x: number; y: number; w: number; h: number }) {
-    const scale = Math.max(rect.w / video.videoWidth, rect.h / video.videoHeight);
+  private fitRect(
+    video: HTMLVideoElement,
+    rect: { x: number; y: number; w: number; h: number },
+    contain = false,
+  ) {
+    const scale = contain
+      ? Math.min(rect.w / video.videoWidth, rect.h / video.videoHeight)
+      : Math.max(rect.w / video.videoWidth, rect.h / video.videoHeight);
     const dw = video.videoWidth * scale;
     const dh = video.videoHeight * scale;
     return { x: rect.x + (rect.w - dw) / 2, y: rect.y + (rect.h - dh) / 2, w: dw, h: dh };
@@ -330,26 +465,34 @@ export class Scene {
     const { ctx } = this;
     const { x: ox, y: oy, w: dw, h: dh } = this.drawRect;
     if (dw <= 0) return;
-    const W = this.canvas.width;
-    const X = (nx: number) => W - (ox + nx * dw); // espejo
+    const X = (nx: number) => ox + (1 - nx) * dw; // espejo dentro de drawRect
     const Y = (ny: number) => oy + ny * dh;
 
     // Zona donde debe permanecer la persona (coords normalizadas de video).
-    const zone = { x0: 0.2, x1: 0.8, y0: 0.05, y1: 0.96 };
+    const zone = { x0: 0.2, x1: 0.8, y0: 0.02, y1: 0.88 };
     const zx0 = X(zone.x1);
     const zx1 = X(zone.x0);
     const zy0 = Y(zone.y0);
     const zy1 = Y(zone.y1);
 
+    // La silueta va escalada (~75%) con los pies ~en 0.84: figura compacta
+    // y un poco más arriba para encajar el cuerpo sin pegarse al borde.
+    const S = 0.75;
+    const FOOT_Y = 0.66;
+    const gx = (nx: number) => 0.5 + (nx - 0.5) * S;
+    const gy = (ny: number) => FOOT_Y - (0.9 - ny) * S;
+
     // Marcas objetivo: landmark, posición esperada y radio de tolerancia.
     // Los índices son anatómicos: en coords de imagen el lado propio izquierdo
     // cae a x > 0.5 (en la vista espejo se ve a la izquierda de pantalla).
     const targets = [
-      { idx: LM.nose, tx: 0.5, ty: 0.15, r: 0.075, label: 'CABEZA' },
-      { idx: LM.leftWrist, tx: 0.66, ty: 0.58, r: 0.07, label: 'MANO IZQ' },
-      { idx: LM.rightWrist, tx: 0.34, ty: 0.58, r: 0.07, label: 'MANO DER' },
-      { idx: LM.leftAnkle, tx: 0.56, ty: 0.88, r: 0.06, label: 'PIE IZQ' },
-      { idx: LM.rightAnkle, tx: 0.44, ty: 0.88, r: 0.06, label: 'PIE DER' },
+      { idx: LM.nose, tx: 0.5, ty: gy(0.15), r: 0.065, label: 'CABEZA' },
+      { idx: LM.leftWrist, tx: gx(0.66), ty: gy(0.58), r: 0.06, label: 'MANO IZQ' },
+      { idx: LM.rightWrist, tx: gx(0.34), ty: gy(0.58), r: 0.06, label: 'MANO DER' },
+      // Pies: van más abajo que el tobillo de la silueta (personas altas:
+      // al encajar torso/brazos, el pie real cae más bajo).
+      { idx: LM.leftAnkle, tx: gx(0.56), ty: gy(0.98), r: 0.075, label: 'PIE IZQ', above: true },
+      { idx: LM.rightAnkle, tx: gx(0.44), ty: gy(0.98), r: 0.075, label: 'PIE DER', above: true },
     ];
     const status = targets.map((t) => {
       const lm = landmarks?.[t.idx];
@@ -392,8 +535,8 @@ export class Scene {
     ctx.lineCap = 'round';
     const bone = (ax: number, ay: number, bx: number, by: number) => {
       ctx.beginPath();
-      ctx.moveTo(X(ax), Y(ay));
-      ctx.lineTo(X(bx), Y(by));
+      ctx.moveTo(X(gx(ax)), Y(gy(ay)));
+      ctx.lineTo(X(gx(bx)), Y(gy(by)));
       ctx.stroke();
     };
     ctx.lineWidth = dw * 0.038;
@@ -407,11 +550,13 @@ export class Scene {
     bone(0.63, 0.3, 0.67, 0.44); // brazo izq.
     bone(0.67, 0.44, 0.66, 0.58);
     bone(0.44, 0.56, 0.44, 0.72); // pierna der.
-    bone(0.44, 0.72, 0.44, 0.9);
+    bone(0.44, 0.72, 0.44, 1.0); // espinilla más larga
+    bone(0.44, 1.0, 0.4, 1.0); // pie der. (hacia fuera)
     bone(0.56, 0.56, 0.56, 0.72); // pierna izq.
-    bone(0.56, 0.72, 0.56, 0.9);
+    bone(0.56, 0.72, 0.56, 1.0);
+    bone(0.56, 1.0, 0.6, 1.0); // pie izq.
     ctx.beginPath(); // cabeza
-    ctx.ellipse(X(0.5), Y(0.13), dw * 0.05, dh * 0.07, 0, 0, Math.PI * 2);
+    ctx.ellipse(X(0.5), Y(gy(0.13)), dw * 0.05 * S, dh * 0.07 * S, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -446,35 +591,48 @@ export class Scene {
       ctx.textBaseline = 'alphabetic';
       ctx.font = `700 ${labelSize}px "Segoe UI", sans-serif`;
       ctx.textAlign = 'center';
-      // Las marcas de pie van cerca del borde inferior: su etiqueta va arriba.
-      const labelY = t.ty > 0.8 ? py - r - 8 : py + r + labelSize + 4;
+      // Las marcas de pie llevan la etiqueta arriba del círculo (zona baja/pads).
+      const labelY = 'above' in t ? py - r - 8 : py + r + labelSize + 4;
       ctx.fillText(t.label, px, labelY);
       ctx.restore();
     }
 
-    // Mensaje de estado.
+    // Mensaje de estado: en la barra DOM si existe (no tapa los controles),
+    // si no, dibujado en el canvas sobre la zona. Sin mensaje de instrucción.
+    const msg = allIn ? 'POSICIÓN CORRECTA — quédate quieto' : '';
+    if (this.statusEl) {
+      if (this.statusEl.textContent !== msg) {
+        this.statusEl.textContent = msg;
+        this.statusEl.classList.toggle('ok', allIn);
+      }
+      return;
+    }
+    if (!msg) return;
     ctx.save();
     ctx.textAlign = 'center';
     ctx.font = `700 ${Math.max(15, dw * 0.028)}px "Segoe UI", sans-serif`;
     ctx.fillStyle = allIn ? '#3eff8a' : '#e8e8f0';
     ctx.shadowColor = 'rgba(0,0,0,0.8)';
     ctx.shadowBlur = 8;
-    ctx.fillText(
-      allIn ? 'POSICIÓN CORRECTA — quédate quieto' : 'Colócate dentro de la zona: lleva cada marca a verde',
-      (zx0 + zx1) / 2,
-      Math.max(zy0 - 8, labelSize + 6),
-    );
+    ctx.fillText(msg, (zx0 + zx1) / 2, Math.max(zy0 - 8, labelSize + 6));
     ctx.restore();
   }
 
-  private drawSkeleton(landmarks: Landmark[]): void {
-    const { ctx, canvas } = this;
-    const W = canvas.width;
+  private drawSkeleton(
+    landmarks: Landmark[],
+    clipRect?: { x: number; y: number; w: number; h: number } | null,
+  ): void {
+    const { ctx } = this;
     const { x: ox, y: oy, w: dw, h: dh } = this.drawRect;
-    const px = (lm: Landmark) => W - (ox + lm.x * dw); // espejo
+    const px = (lm: Landmark) => ox + (1 - lm.x) * dw; // espejo dentro de drawRect
     const py = (lm: Landmark) => oy + lm.y * dh;
 
     ctx.save();
+    if (clipRect) {
+      ctx.beginPath();
+      ctx.rect(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
+      ctx.clip();
+    }
     ctx.lineWidth = this.drawRect.w < 400 ? 1.5 : 3;
     for (const [a, b] of BONES) {
       const la = landmarks[a];
@@ -536,54 +694,56 @@ export class Scene {
           ctx.drawImage(img, this.canvas.width / 2 - w / 2, y - h, w, h);
         }
       } else {
-        const target = this.padCenter(note.lane);
         const pad = this.padRect(note.lane as number);
-        const x = vp.x + (target.x - vp.x) * e;
         if (note.kind === 'hand') {
-          // Puños: viajan elevados a ~pecho, no aterrizan en el pad.
-          const y = vp.y + (pad.y - pad.h * 0.4 - vp.y) * e;
-          const size = pad.h * (0.25 + 0.95 * e);
+          // Puños: llegan a altura de cara/pecho (~30% de la pantalla), como en la
+          // referencia — no aterrizan en el pad, flotan altos al llegar.
+          const target = this.padCenter(note.lane);
+          const x = vp.x + (target.x - vp.x) * e;
+          const y = vp.y + (this.handNoteY() - vp.y) * e;
+          const size = pad.h * (0.3 + 1.4 * e);
           const img = this.images.get(`note-${note.lane}`);
           if (img) ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
         } else {
-          // Pies: placa acostada sobre la pista (achatada en y).
-          const y = vp.y + (target.y - vp.y) * e;
-          const size = pad.h * (0.3 + 1.1 * e);
+          // Pies: placa acostada sobre la pista, deformada en perspectiva hacia
+          // el punto de fuga — en los carriles laterales se ve inclinada, como
+          // en la referencia.
           const img = this.images.get(`note-${note.lane}`);
-          if (img) ctx.drawImage(img, x - size / 2, y - size * 0.32, size, size * 0.64);
+          if (img) this.drawImageQuad(img, this.floorTileQuad(pad, e));
         }
       }
       ctx.restore();
     }
   }
 
-  /** Panel guía enmarcado con la silueta del próximo obstáculo, a la izquierda. */
+  /** Panel guía enmarcado con la silueta del próximo obstáculo, arriba a la izquierda (en vertical). */
   private drawGuide(game: GameView): void {
-    const { ctx, canvas } = this;
+    const { ctx } = this;
     const next = game.notes.find(
       (n) => n.state === 'pending' && isObstacle(n.kind) && n.time - game.songTime < game.travelMs,
     );
-    if (!next) return;
-    const pose = this.images.get(`pose-${next.kind}`);
+    const { x: px, topY: py, w: pw, h: ph } = this.sideBoxMetrics();
     const panel = this.images.get('guide-panel');
-    const until = next.time - game.songTime;
-    const pulse = until < 800 ? 0.75 + 0.25 * Math.sin(performance.now() / 80) : 0.55;
-    const pw = canvas.width * 0.16;
-    const px = canvas.width * 0.03;
-    const py = canvas.height * 0.2;
+    const pose = next ? this.images.get(`pose-${next.kind}`) : this.images.get('pose-neutral');
+    const until = next ? next.time - game.songTime : Infinity;
+    const pulse = next
+      ? until < 800
+        ? 0.75 + 0.25 * Math.sin(performance.now() / 80)
+        : 0.65
+      : 0.45;
     ctx.save();
     ctx.globalAlpha = Math.min(1, pulse);
     if (panel) {
-      const ph = pw * (panel.height / panel.width);
       ctx.drawImage(panel, px, py, pw, ph);
-      if (pose) {
-        const ih = ph * 0.78;
-        const iw = ih * (pose.width / pose.height);
-        ctx.drawImage(pose, px + (pw - iw) / 2, py + ph * 0.14, iw, ih);
-      }
-    } else if (pose) {
-      const ih = canvas.height * 0.22;
-      ctx.drawImage(pose, px, py, ih * (pose.width / pose.height), ih);
+    } else {
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(px, py, pw, ph);
+    }
+    if (pose) {
+      const ih = ph * 0.78;
+      const iw = ih * (pose.width / pose.height);
+      ctx.drawImage(pose, px + (pw - iw) / 2, py + (ph - ih) / 2, iw, ih);
     }
     ctx.restore();
   }
@@ -624,26 +784,88 @@ export class Scene {
     }
   }
 
+  /**
+   * Cuadrados sutiles al final de cada carril: la línea de juicio donde las
+   * piezas se resuelven (tocada o perdida). Apenas marcados en reposo; se
+   * iluminan con el color del carril al contacto, como en la referencia.
+   */
   private drawPads(): void {
     const { ctx } = this;
     const now = performance.now();
+    const vp = this.vanishingPoint();
     for (let i = 0; i < 4; i++) {
       const r = this.padRect(i);
       const active = (this.padFlash.get(i) ?? 0) > now;
-      const img = active
-        ? this.images.get(`pad-${PAD_COLORS[i]}`)
-        : this.images.get('pad-idle');
-      if (img) ctx.drawImage(img, r.x, r.y, r.w, r.h);
+      const color = PAD_HEX[PAD_COLORS[i]];
+      // Borde superior recogido hacia el punto de fuga: sigue la pista.
+      const taper = 0.88;
+      const tx0 = vp.x + (r.x - vp.x) * taper;
+      const tx1 = vp.x + (r.x + r.w - vp.x) * taper;
+      const ty = vp.y + (r.y - vp.y) * taper;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(tx0, ty);
+      ctx.lineTo(tx1, ty);
+      ctx.lineTo(r.x + r.w, r.y + r.h);
+      ctx.lineTo(r.x, r.y + r.h);
+      ctx.closePath();
       if (active) {
-        ctx.save();
-        ctx.globalAlpha = 0.35;
-        ctx.fillStyle = PAD_HEX[PAD_COLORS[i]];
-        ctx.fillRect(r.x, r.y, r.w, r.h);
-        ctx.restore();
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 26;
+        ctx.fillStyle = color;
+        ctx.globalAlpha = 0.85;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      } else {
+        ctx.fillStyle = 'rgba(14,14,24,0.55)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(232,232,240,0.15)';
       }
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
     }
     // limpiar flashes expirados
     for (const [k, exp] of this.padFlash) if (exp <= now) this.padFlash.delete(k);
+  }
+
+  /** Sellos de acierto: la nota queda sobre el pad y se desvanece en ~1.5 s. */
+  private drawStamps(): void {
+    const { ctx } = this;
+    const now = performance.now();
+    const LIFE = 1500;
+    this.stamps = this.stamps.filter((s) => now - s.start < LIFE);
+    for (const s of this.stamps) {
+      const t = (now - s.start) / LIFE;
+      const r = this.padRect(s.lane);
+      ctx.save();
+      ctx.globalAlpha = (1 - t) * 0.85;
+      if (isObstacle(s.kind)) {
+        // ✓ del color del carril sobre los pads del lado esquivado
+        ctx.fillStyle = PAD_HEX[s.color];
+        ctx.font = `700 ${r.h * 0.9}px "Segoe UI", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✓', r.x + r.w / 2, r.y + r.h / 2);
+      } else {
+        const img = this.images.get(`note-${s.lane}`);
+        if (img) {
+          if (s.kind === 'foot') {
+            // placa en perspectiva sobre el pad, igual que la nota al llegar
+            this.drawImageQuad(img, this.floorTileQuad(r, 1));
+          } else {
+            // El puño se estampa a la altura a la que llega la nota, no en el pad.
+            const hs = r.h * 1.4;
+            ctx.drawImage(img, r.x + r.w / 2 - hs / 2, this.handNoteY() - hs / 2, hs, hs);
+          }
+        } else {
+          ctx.fillStyle = PAD_HEX[s.color];
+          ctx.fillRect(r.x, r.y, r.w, r.h);
+        }
+      }
+      ctx.restore();
+    }
   }
 
   private drawRings(): void {
@@ -683,7 +905,7 @@ export class Scene {
     const { ctx } = this;
     ctx.save();
     ctx.font = '600 15px "Segoe UI", sans-serif';
-    let y = 28;
+    let y = this.canvas.height / 2; // avisos a media altura, a la izquierda
     for (const w of warnings) {
       ctx.fillStyle = '#ffd23e';
       ctx.fillText(`⚠ ${w}`, 18, y);
@@ -695,7 +917,7 @@ export class Scene {
       ctx.fillStyle = '#29e6ff';
       ctx.shadowColor = 'rgba(41,230,255,0.7)';
       ctx.shadowBlur = 18;
-      ctx.fillText(overlay, this.canvas.width / 2, 60);
+      ctx.fillText(overlay, this.canvas.width / 2, 78);
     }
     ctx.restore();
   }

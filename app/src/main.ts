@@ -27,6 +27,8 @@ const btnCalibrate = $<HTMLButtonElement>('btn-calibrate');
 const btnPlay = $<HTMLButtonElement>('btn-play');
 const sceneSelect = $<HTMLSelectElement>('scene-select');
 const lengthSelect = $<HTMLSelectElement>('length-select');
+const btnPanelToggle = $<HTMLButtonElement>('btn-panel-toggle');
+const stageControls = document.querySelector<HTMLElement>('.stage-controls')!;
 const chipPermission = $('chip-permission');
 const chipPose = $('chip-pose');
 const chipHands = $('chip-hands');
@@ -44,6 +46,7 @@ const mLast = $('m-last');
 const logEl = $('log');
 
 const scene = new Scene(canvas);
+scene.statusEl = $('guide-status');
 const tracker = new PoseTracker();
 const detector = new HandRaiseDetector();
 const footDetector = new FootLiftDetector();
@@ -53,6 +56,8 @@ const punchDetector = new PunchDetector();
 let state: AppState = 'idle';
 let camera: CameraHandle | null = null;
 let calibrator: Calibrator | null = null;
+/** Momento en que la calibración empieza a capturar (tras cuenta atrás). */
+let calibrateAt = 0;
 let metrics: BodyMetrics | null = null;
 let lastLandmarks: Landmark[] | null = null;
 let hits = { left: 0, right: 0 };
@@ -75,7 +80,15 @@ let lastError: string | null = null;
 
 /** Tarjeta de inicio: un solo botón que guía el flujo según el estado. */
 function refreshHero(): void {
-  startCard.classList.toggle('hidden', state === 'playing');
+  // La tarjeta tapa la cámara y la guía: solo se muestra donde hace falta su CTA
+  // (iniciar/reintentar/jugar). En live y calibrating se usa el botón CALIBRAR
+  // de la barra superior del escenario.
+  startCard.classList.toggle(
+    'hidden',
+    state === 'live' || state === 'calibrating' || state === 'playing',
+  );
+  // La barra de controles se oculta solo en juego para no tapar la guía de obstáculos.
+  stageControls.classList.toggle('hidden', state === 'playing');
   btnHero.disabled = state === 'starting' || state === 'calibrating';
   const cfg: Record<AppState, [string, string]> = {
     idle: ['Iniciar cámara', 'Necesitas una webcam · todo se procesa en tu navegador'],
@@ -212,6 +225,16 @@ async function boot(): Promise<void> {
 
 function onCameraLost(): void {
   log('La cámara dejó de enviar video', 'hit');
+  // Soltar el stream muerto: si no, draw() sigue pintando el último frame
+  // corrupto y el canvas parpadea en bandas.
+  stopCamera(camera);
+  camera = null;
+  // Cortar el juego si estaba en marcha: sin cámara no hay gestos ni sentido
+  // en seguir el reloj o el fondo.
+  clock?.stop();
+  clock = null;
+  bgVideo?.pause();
+  scene.setBackground(null);
   setChip(chipPermission, 'Permiso: cámara perdida', 'err');
   setBigCard('!');
   overlayText = 'Cámara perdida — reinicia con el botón';
@@ -225,11 +248,14 @@ function onCameraLost(): void {
 function startCalibration(): void {
   if (state !== 'live' && state !== 'ready') return;
   calibrator = new Calibrator(60);
+  resultsView = null;
+  // 5 s de margen para alejarse de la pantalla y colocarse antes de capturar.
+  calibrateAt = performance.now() + 5000;
   state = 'calibrating';
   detector.reset();
   btnCalibrate.disabled = true;
   refreshHero();
-  log('Calibrando: quédate quieto en posición neutral…');
+  log('Calibrando en 5 s: aléjate y ponte en posición neutral…');
 }
 
 function finishCalibration(m: BodyMetrics, coverage: number): void {
@@ -272,7 +298,11 @@ function sideLabel(ev: GestureEvent): string {
 }
 
 function registerHit(note: Note | null, rating: Rating, ev?: GestureEvent): void {
-  if (note) note.state = 'hit';
+  if (note) {
+    note.state = 'hit';
+    // La nota queda marcada un momento donde se resolvió (como en la referencia).
+    scene.stampHit(note);
+  }
   combo++;
   maxCombo = Math.max(maxCombo, combo);
   counts[rating]++;
@@ -399,11 +429,18 @@ async function tick(): Promise<void> {
       }
 
       if (state === 'calibrating' && calibrator) {
-        if (calibrator.progress < 1) {
-          setBigCard(`${Math.max(1, Math.ceil((1 - calibrator.progress) * 3))}`);
+        const wait = calibrateAt - t0;
+        if (wait > 0) {
+          setBigCard(`${Math.ceil(wait / 1000)}`);
+        } else {
+          setBigCard(
+            calibrator.progress < 1
+              ? `${Math.max(1, Math.ceil((1 - calibrator.progress) * 3))}`
+              : null,
+          );
+          const done = calibrator.addFrame(frame.landmarks);
+          if (done) finishCalibration(done, calibrator.poseCoverage);
         }
-        const done = calibrator.addFrame(frame.landmarks);
-        if (done) finishCalibration(done, calibrator.poseCoverage);
       } else if ((state === 'ready' || state === 'playing') && metrics) {
         bodyState = computeBodyState(frame.landmarks, metrics);
         setChip(
@@ -472,7 +509,14 @@ async function tick(): Promise<void> {
           paused: clock.isPaused,
         }
       : undefined;
-  scene.draw(camera?.video ?? null, lastLandmarks, warnings, overlayText, gameView);
+  // En juego no mostramos avisos de encuadre: distraen sobre la pista.
+  scene.draw(
+    camera?.video ?? null,
+    lastLandmarks,
+    state === 'playing' ? [] : warnings,
+    overlayText,
+    gameView,
+  );
   if (resultsView) scene.drawResults(resultsView);
 
   if (lastTickTime > 0) {
@@ -497,6 +541,15 @@ btnHero.addEventListener('click', () => {
 btnStart.addEventListener('click', () => void boot());
 btnCalibrate.addEventListener('click', startCalibration);
 btnPlay.addEventListener('click', () => void startGame());
+btnPanelToggle.addEventListener('click', () => {
+  const main = document.querySelector('main');
+  if (!main) return;
+  const collapsed = main.classList.toggle('panel-collapsed');
+  btnPanelToggle.textContent = collapsed ? '«' : '»';
+  btnPanelToggle.title = collapsed ? 'Expandir panel' : 'Contraer panel';
+  localStorage.setItem('panel-collapsed', collapsed ? '1' : '0');
+});
+if (localStorage.getItem('panel-collapsed') === '1') btnPanelToggle.click();
 window.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape' || state !== 'playing' || !clock) return;
   if (clock.isPaused) {

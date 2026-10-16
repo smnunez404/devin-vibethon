@@ -7,3 +7,6 @@ app/dist/
 
 # Material de referencia (no desplegable, >100MB)
 raw/
+
+# Harness local de screenshots e2e (puppeteer-core + Chrome)
+.shots/

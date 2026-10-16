@@ -66,6 +66,25 @@ export function framingReport(lms: Landmark[]): {
   return { handsVisible: leftHand && rightHand, feetVisible: leftFoot && rightFoot, warnings };
 }
 
+/**
+ * Métricas por defecto si la calibración termina sin muestras de pose.
+ * Valores coherentes con la silueta de la guía de posicionamiento de Scene
+ * (figura ~75% de escala, pies en y≈0.73); si no, los detectores de pie y
+ * salto quedarían disparados permanentemente.
+ */
+export function defaultMetrics(): BodyMetrics {
+  return {
+    shoulderWidth: 0.19,
+    torsoHeight: 0.19,
+    shoulderY: 0.21,
+    hipY: 0.4,
+    torsoCenterX: 0.5,
+    leftAnkleY: 0.74,
+    rightAnkleY: 0.74,
+    visibility: { hands: 0, feet: 0 },
+  };
+}
+
 /** Acumula frames durante la calibración y promedia métricas. */
 export class Calibrator {
   private samples: Omit<BodyMetrics, 'visibility'>[] = [];
@@ -92,18 +111,7 @@ export class Calibrator {
       this.footVis.push(fv);
     }
     if (this.frames < this.targetFrames) return null;
-    if (this.samples.length === 0) {
-      return {
-        shoulderWidth: 0.2,
-        torsoHeight: 0.3,
-        shoulderY: 0.4,
-        hipY: 0.7,
-        torsoCenterX: 0.5,
-        leftAnkleY: 0.95,
-        rightAnkleY: 0.95,
-        visibility: { hands: 0, feet: 0 },
-      };
-    }
+    if (this.samples.length === 0) return defaultMetrics();
     const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
     return {
       shoulderWidth: avg(this.samples.map((s) => s.shoulderWidth)),

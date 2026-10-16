@@ -7,15 +7,20 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <header>
-      <h1>Devin Vibethon</h1>
-      <p class="subtitle">Hito 1 · cámara → pose → calibración → gesto → reacción</p>
-    </header>
-
     <main>
       <section class="stage">
         <canvas id="scene" width="1280" height="720"></canvas>
         <div id="big-card" class="big-card hidden"></div>
+        <div class="stage-topbar">
+          <div class="stage-controls">
+            <label for="device-select">Cámara</label>
+            <select id="device-select" disabled></select>
+            <button id="btn-start">Iniciar cámara</button>
+            <button id="btn-calibrate" disabled>Calibrar</button>
+            <button id="btn-play" disabled>Jugar</button>
+          </div>
+          <div id="guide-status" class="guide-status"></div>
+        </div>
         <div id="start-card" class="start-card">
           <h2>DEVIN VIBETHON</h2>
           <p class="tagline">Ritmo y cardio controlados por tu cámara</p>
@@ -29,13 +34,10 @@
         </div>
       </section>
 
-      <aside class="panel">
+      <aside class="panel" id="panel">
+        <button id="btn-panel-toggle" class="panel-toggle" title="Contraer panel">»</button>
+        <div class="panel-body">
         <div class="controls">
-          <label for="device-select">Cámara</label>
-          <select id="device-select" disabled></select>
-          <button id="btn-start">Iniciar cámara</button>
-          <button id="btn-calibrate" disabled>Calibrar</button>
-          <button id="btn-play" disabled>Jugar</button>
           <label for="scene-select">Escenario</label>
           <select id="scene-select">
             <option value="loop-fairground" selected>Feria</option>
@@ -70,6 +72,7 @@
         </div>
 
         <ol id="log" class="log"></ol>
+        </div>
       </aside>
     </main>
 
