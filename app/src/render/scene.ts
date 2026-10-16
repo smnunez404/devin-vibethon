@@ -190,6 +190,8 @@ export class Scene {
       this.drawRect = this.fitRect(video, rect);
     }
 
+    // Guía de posicionamiento (solo con cámara a pantalla completa, fuera del juego).
+    if (!camRect && video) this.drawPositionGuide(landmarks);
     // Esqueleto sobre el espacio de la cámara (fullscreen o PiP).
     if (landmarks && video) this.drawSkeleton(landmarks);
     if (camRect) {
@@ -318,6 +320,148 @@ export class Scene {
     const dw = video.videoWidth * scale;
     const dh = video.videoHeight * scale;
     return { x: rect.x + (rect.w - dw) / 2, y: rect.y + (rect.h - dh) / 2, w: dw, h: dh };
+  }
+
+  /**
+   * Guía de posicionamiento: zona delimitada + silueta de referencia + marcas
+   * de cabeza/manos/pies que se ponen en verde cuando estás en su sitio.
+   */
+  private drawPositionGuide(landmarks: Landmark[] | null): void {
+    const { ctx } = this;
+    const { x: ox, y: oy, w: dw, h: dh } = this.drawRect;
+    if (dw <= 0) return;
+    const W = this.canvas.width;
+    const X = (nx: number) => W - (ox + nx * dw); // espejo
+    const Y = (ny: number) => oy + ny * dh;
+
+    // Zona donde debe permanecer la persona (coords normalizadas de video).
+    const zone = { x0: 0.2, x1: 0.8, y0: 0.05, y1: 0.96 };
+    const zx0 = X(zone.x1);
+    const zx1 = X(zone.x0);
+    const zy0 = Y(zone.y0);
+    const zy1 = Y(zone.y1);
+
+    // Marcas objetivo: landmark, posición esperada y radio de tolerancia.
+    const targets = [
+      { idx: 0, tx: 0.5, ty: 0.15, r: 0.075, label: 'CABEZA' },
+      { idx: 15, tx: 0.34, ty: 0.58, r: 0.07, label: 'MANO' },
+      { idx: 16, tx: 0.66, ty: 0.58, r: 0.07, label: 'MANO' },
+      { idx: 27, tx: 0.44, ty: 0.88, r: 0.06, label: 'PIE' },
+      { idx: 28, tx: 0.56, ty: 0.88, r: 0.06, label: 'PIE' },
+    ];
+    const status = targets.map((t) => {
+      const lm = landmarks?.[t.idx];
+      if (!lm || (lm.visibility ?? 0) < 0.4) return 'off';
+      return Math.hypot(lm.x - t.tx, lm.y - t.ty) <= t.r ? 'in' : 'near';
+    });
+    const allIn = status.every((s) => s === 'in');
+    const zoneColor = allIn ? '#3eff8a' : '#29e6ff';
+
+    ctx.save();
+    // Marco de la zona (discontinuo) + esquinas tipo viewfinder.
+    ctx.strokeStyle = zoneColor;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([14, 10]);
+    ctx.globalAlpha = allIn ? 0.9 : 0.55;
+    ctx.strokeRect(zx0, zy0, zx1 - zx0, zy1 - zy0);
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 0.95;
+    ctx.lineWidth = 5;
+    const c = Math.min(zx1 - zx0, zy1 - zy0) * 0.09;
+    for (const [cx, cy, sx, sy] of [
+      [zx0, zy0, 1, 1],
+      [zx1, zy0, -1, 1],
+      [zx0, zy1, 1, -1],
+      [zx1, zy1, -1, -1],
+    ] as const) {
+      ctx.beginPath();
+      ctx.moveTo(cx + c * sx, cy);
+      ctx.lineTo(cx, cy);
+      ctx.lineTo(cx, cy + c * sy);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Silueta de referencia (pose neutra) dentro de la zona.
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.lineCap = 'round';
+    const bone = (ax: number, ay: number, bx: number, by: number) => {
+      ctx.beginPath();
+      ctx.moveTo(X(ax), Y(ay));
+      ctx.lineTo(X(bx), Y(by));
+      ctx.stroke();
+    };
+    ctx.lineWidth = dw * 0.038;
+    bone(0.5, 0.22, 0.5, 0.56); // torso
+    ctx.lineWidth = dw * 0.03;
+    bone(0.37, 0.3, 0.63, 0.3); // hombros
+    bone(0.42, 0.56, 0.58, 0.56); // cadera
+    ctx.lineWidth = dw * 0.022;
+    bone(0.37, 0.3, 0.33, 0.44); // brazo der. (video)
+    bone(0.33, 0.44, 0.34, 0.58);
+    bone(0.63, 0.3, 0.67, 0.44); // brazo izq.
+    bone(0.67, 0.44, 0.66, 0.58);
+    bone(0.44, 0.56, 0.44, 0.72); // pierna der.
+    bone(0.44, 0.72, 0.44, 0.9);
+    bone(0.56, 0.56, 0.56, 0.72); // pierna izq.
+    bone(0.56, 0.72, 0.56, 0.9);
+    ctx.beginPath(); // cabeza
+    ctx.ellipse(X(0.5), Y(0.13), dw * 0.05, dh * 0.07, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Marcas de posición: círculo discontinuo que se rellena en verde al encajar.
+    const labelSize = Math.max(12, dw * 0.022);
+    for (let i = 0; i < targets.length; i++) {
+      const t = targets[i];
+      const s = status[i];
+      const px = X(t.tx);
+      const py = Y(t.ty);
+      const r = t.r * dw;
+      const col = s === 'in' ? '#3eff8a' : s === 'near' ? '#ffd23e' : '#ff4e5e';
+      ctx.save();
+      ctx.strokeStyle = col;
+      ctx.fillStyle = col;
+      ctx.lineWidth = 3;
+      ctx.globalAlpha = 0.85;
+      ctx.setLineDash(s === 'in' ? [] : [8, 6]);
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      if (s === 'in') {
+        ctx.globalAlpha = 0.25;
+        ctx.fill();
+        ctx.globalAlpha = 0.95;
+        ctx.font = `700 ${r * 0.8}px "Segoe UI", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✓', px, py);
+      }
+      ctx.textBaseline = 'alphabetic';
+      ctx.font = `700 ${labelSize}px "Segoe UI", sans-serif`;
+      ctx.textAlign = 'center';
+      // Las marcas de pie van cerca del borde inferior: su etiqueta va arriba.
+      const labelY = t.ty > 0.8 ? py - r - 8 : py + r + labelSize + 4;
+      ctx.fillText(t.label, px, labelY);
+      ctx.restore();
+    }
+
+    // Mensaje de estado.
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.font = `700 ${Math.max(15, dw * 0.028)}px "Segoe UI", sans-serif`;
+    ctx.fillStyle = allIn ? '#3eff8a' : '#e8e8f0';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 8;
+    ctx.fillText(
+      allIn ? 'POSICIÓN CORRECTA — quédate quieto' : 'Colócate dentro de la zona: lleva cada marca a verde',
+      (zx0 + zx1) / 2,
+      Math.max(zy0 - 8, labelSize + 6),
+    );
+    ctx.restore();
   }
 
   private drawSkeleton(landmarks: Landmark[]): void {

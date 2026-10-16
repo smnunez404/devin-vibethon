@@ -102,3 +102,8 @@ Registro append-only de operaciones sobre este proyecto. Añadir entradas nuevas
 - **Verificado:** https://smnunez404.github.io/devin-vibethon/ → index, bundle JS, modelo (9,4 MB), wasm (13,5 MB), WAV y MP4 de fondo responden 200.
 - `raw/` excluido del versionado (MP4 de 314 MB > límite de GitHub); `vercel.json` añadido en `app/` para despliegue futuro en Vercel (requiere cuenta/auth del usuario).
 - Pendiente: calibración fina de umbrales en cámara real y sincronía audio↔gesto.
+
+## 2026-10-15 — Guía de posicionamiento en cámara
+
+- `scene.ts`: nueva capa `drawPositionGuide` visible con cámara a pantalla completa (estados live/calibrating/ready): zona delimitada con esquinas tipo viewfinder, silueta fantasma de pose neutra y marcas CABEZA/MANO/MANO/PIE/PIE que pasan a verde al encajar el landmark correspondiente (tolerancia por radio); mensaje de estado "POSICIÓN CORRECTA" o instrucción de ajuste.
+- Redesplegado en GitHub Pages.
