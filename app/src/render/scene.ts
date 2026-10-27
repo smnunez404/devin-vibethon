@@ -90,8 +90,15 @@ export class Scene {
   private stamps: Stamp[] = [];
   private padFlash = new Map<number, number>(); // pad -> timestamp de expiración
   private drawRect = { x: 0, y: 0, w: 0, h: 0 };
-  /** Fondo del modo juego (loop MP4 con pista). Si está, la cámara va a PiP. */
+  /** Fondo del modo juego (loop MP4 con pista). Si está, se muestra el panel de silueta en vivo. */
   private bgVideo: HTMLVideoElement | null = null;
+  /** Landmarks suavizados temporalmente para renderizar la silueta continua sin temblor. */
+  private smoothLms: Array<{ x: number; y: number; visibility: number }> | null = null;
+  /** Línea base del suelo (tobillos en reposo) y altura corporal para anclar la silueta a las teclas. */
+  private silFloorY = 0;
+  private silSpanY = 0;
+  /** Lienzo auxiliar para componer la silueta negra con borde blanco continuo (2 pasadas sin costuras). */
+  private silCanvas: HTMLCanvasElement | null = null;
   /** Si existe, el mensaje de estado de la guía se publica aquí en vez de en canvas. */
   statusEl: HTMLElement | null = null;
 
@@ -99,19 +106,16 @@ export class Scene {
     this.bgVideo = bg;
   }
 
-  /** Geometría compartida para los dos cuadros verticales de la izquierda (guía arriba, cámara abajo). */
-  private sideBoxMetrics(): { x: number; w: number; h: number; topY: number; bottomY: number } {
-    const w = this.canvas.width * 0.14;
-    const h = w * 1.75; // proporción vertical 320×560 del guide-panel
-    const x = this.canvas.width * 0.03;
-    const topY = this.canvas.height * 0.04;
-    const gap = this.canvas.height * 0.025;
-    return { x, w, h, topY, bottomY: topY + h + gap };
-  }
-
-  private pipRect(): { x: number; y: number; w: number; h: number } {
-    const { x, w, h, bottomY } = this.sideBoxMetrics();
-    return { x, y: bottomY, w, h };
+  /** Rectángulo del panel vertical izquierdo (idéntico al referente STAY ON BEAT #18). */
+  private silhouettePanelRect(): { x: number; y: number; w: number; h: number } {
+    const W = this.canvas.width;
+    const H = this.canvas.height;
+    return {
+      x: Math.round(W * 0.043),
+      y: Math.round(H * 0.245),
+      w: Math.round(W * 0.145),
+      h: Math.round(H * 0.495),
+    };
   }
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -134,7 +138,7 @@ export class Scene {
     for (const [lane, name] of Object.entries(LANE_NOTE)) {
       jobs.push([`note-${lane}`, `${base}/notes/${name}.png`]);
     }
-    for (const r of ['perfect', 'great', 'nice', 'miss']) {
+    for (const r of ['perfect', 'great', 'nice', 'miss', 'awesome', 'unstoppable']) {
       jobs.push([`rating-${r}`, `${base}/hud/rating-${r}.png`]);
     }
     for (let d = 0; d <= 9; d++) {
@@ -177,106 +181,98 @@ export class Scene {
     return [0, 1, 2, 3];
   }
 
-  /**
-   * Deja la nota estampada un momento (~1.5 s) donde se resolvió para que se
-   * vea qué se tocó: los pies sobre su pad, los puños a su altura de llegada.
-   * Los obstáculos marcan los pads de su lado con un ✓.
-   */
+  /** Marca el acierto en la posición donde se resolvió la nota. */
   stampHit(note: Note): void {
     const now = performance.now();
     for (const lane of this.lanesOf(note)) {
       this.stamps.push({ lane, kind: note.kind, color: PAD_COLORS[lane], start: now });
+      if (note.kind === 'hand') {
+        const hp = this.handTargetCenter(lane);
+        this.frags.push({ x: hp.x, y: hp.y, color: PAD_COLORS[lane], start: now });
+      }
     }
+  }
+
+  /** Profundidad inicial en la boca lejana del túnel (nunca 0 para que las notas nazcan visibles desde el fondo). */
+  private readonly tunnelMinD = 0.14;
+
+  /**
+   * Proyección en perspectiva exponencial continua:
+   * - pRaw = 0 (boca del túnel) → d = tunnelMinD (0.14)
+   * - pRaw = 1 (línea de pads)  → d = 1.0
+   * - pRaw > 1 (tras el pad)    → d > 1.0 (sigue acelerando sin frenar jamás)
+   * Como d(p - Δp) / d(p) = tunnelMinD^Δp es constante en todo el túnel,
+   * la separación relativa entre dos objetos es invariante y el objeto de
+   * atrás jamás puede alcanzar ni solapar al de adelante.
+   */
+  private depthAt(pRaw: number): number {
+    return Math.pow(this.tunnelMinD, 1 - pRaw);
   }
 
   private padRect(i: number): { x: number; y: number; w: number; h: number } {
     const { width, height } = this.canvas;
-    const padW = width * 0.11;
-    const padH = padW * 0.62;
-    const gap = width * 0.035;
+    const padW = width * 0.132;
+    const padH = height * 0.145;
+    const gap = width * 0.014;
     const total = padW * 4 + gap * 3;
     const x = (width - total) / 2 + i * (padW + gap);
-    const y = height - padH - height * 0.05;
+    const y = height - padH - height * 0.035;
     return { x, y, w: padW, h: padH };
   }
 
   private padCenter(i: number): { x: number; y: number } {
     const r = this.padRect(i);
-    return { x: r.x + r.w / 2, y: r.y + r.h / 2 };
-  }
-
-  /** Altura a la que llegan las notas de puño (cara/pecho), como en la referencia. */
-  private handNoteY(): number {
-    return this.canvas.height * 0.3;
+    return { x: r.x + r.w / 2, y: r.y + r.h * 0.55 };
   }
 
   /**
-   * Trapecio de una placa sobre la pista: el borde frontal avanza a la
-   * profundidad `e` (1 = sobre el pad) y el trasero queda recogido hacia el
-   * punto de fuga. Como los bordes laterales convergen al vp, la placa se ve
-   * inclinada en los carriles de los extremos, igual que en la referencia.
+   * Centro objetivo en el plano frontal (d = 1) donde llegan las notas de puño:
+   * flotan arriba en el aire a altura de pecho/cara (`0.36 * H`, como en las
+   * capturas de referencia `audit-t0187` y `t0369`), alineadas horizontalmente
+   * con el centro exacto de su propio pad receptor (`r.x + r.w / 2`).
    */
-  private floorTileQuad(
-    pad: { x: number; y: number; w: number; h: number },
-    e: number,
-  ): { tl: Pt; tr: Pt; br: Pt; bl: Pt } {
-    const vp = this.vanishingPoint();
-    const LEN = 0.2; // profundidad de la placa sobre la pista
-    const eB = Math.max(0.001, e - LEN);
-    const X = (x: number, d: number) => vp.x + (x - vp.x) * d;
-    const Y = (d: number) => vp.y + (pad.y + pad.h - vp.y) * d;
+  private handTargetCenter(lane: number): Pt {
+    const r = this.padRect(lane);
     return {
-      tl: { x: X(pad.x, eB), y: Y(eB) },
-      tr: { x: X(pad.x + pad.w, eB), y: Y(eB) },
-      br: { x: X(pad.x + pad.w, e), y: Y(e) },
-      bl: { x: X(pad.x, e), y: Y(e) },
+      x: r.x + r.w / 2,
+      y: this.canvas.height * 0.36,
+    };
+  }
+
+  /** Proyecta un punto del plano frontal (d = 1) hacia el punto de fuga según profundidad d. */
+  private projectPt(frontX: number, frontY: number, d: number): Pt {
+    const vp = this.vanishingPoint();
+    return {
+      x: vp.x + (frontX - vp.x) * d,
+      y: vp.y + (frontY - vp.y) * d,
     };
   }
 
   /**
-   * Dibuja una imagen dentro de un cuadrilátero dividiéndolo en dos triángulos
-   * y aplicando a cada uno el mapeo afín exacto de su triángulo de origen.
-   * Sin costuras ni bandas (a diferencia del mapeo por tiras).
+   * Trapecio en perspectiva sobre el carril de un pad entre las profundidades
+   * `dBack` y `dFront` (donde d = 1 corresponde al borde frontal del pad).
    */
-  private drawImageQuad(
-    img: HTMLImageElement,
-    q: { tl: Pt; tr: Pt; br: Pt; bl: Pt },
-  ): void {
-    const { ctx } = this;
-    const iw = img.width;
-    const ih = img.height;
-    const tris: Array<[Pt, Pt, Pt, Pt, Pt, Pt]> = [
-      [q.tl, q.tr, q.br, { x: 0, y: 0 }, { x: iw, y: 0 }, { x: iw, y: ih }],
-      [q.tl, q.br, q.bl, { x: 0, y: 0 }, { x: iw, y: ih }, { x: 0, y: ih }],
-    ];
-    for (const [d0, d1, d2, s0, s1, s2] of tris) {
-      const denom = s0.x * (s1.y - s2.y) + s1.x * (s2.y - s0.y) + s2.x * (s0.y - s1.y);
-      if (!denom) continue;
-      const a = (d0.x * (s1.y - s2.y) + d1.x * (s2.y - s0.y) + d2.x * (s0.y - s1.y)) / denom;
-      const c = (d0.x * (s2.x - s1.x) + d1.x * (s0.x - s2.x) + d2.x * (s1.x - s0.x)) / denom;
-      const e =
-        (d0.x * (s1.x * s2.y - s2.x * s1.y) +
-          d1.x * (s2.x * s0.y - s0.x * s2.y) +
-          d2.x * (s0.x * s1.y - s1.x * s0.y)) /
-        denom;
-      const b = (d0.y * (s1.y - s2.y) + d1.y * (s2.y - s0.y) + d2.y * (s0.y - s1.y)) / denom;
-      const d = (d0.y * (s2.x - s1.x) + d1.y * (s0.x - s2.x) + d2.y * (s1.x - s0.x)) / denom;
-      const f =
-        (d0.y * (s1.x * s2.y - s2.x * s1.y) +
-          d1.y * (s2.x * s0.y - s0.x * s2.y) +
-          d2.y * (s0.x * s1.y - s1.x * s0.y)) /
-        denom;
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(d0.x, d0.y);
-      ctx.lineTo(d1.x, d1.y);
-      ctx.lineTo(d2.x, d2.y);
-      ctx.closePath();
-      ctx.clip();
-      ctx.setTransform(a, b, c, d, e, f);
-      ctx.drawImage(img, 0, 0);
-      ctx.restore();
-    }
+  private laneSliceQuad(
+    pad: { x: number; y: number; w: number; h: number },
+    dBack: number,
+    dFront: number,
+  ): { tl: Pt; tr: Pt; br: Pt; bl: Pt } {
+    const frontY = pad.y + pad.h;
+    return {
+      tl: this.projectPt(pad.x, frontY, dBack),
+      tr: this.projectPt(pad.x + pad.w, frontY, dBack),
+      br: this.projectPt(pad.x + pad.w, frontY, dFront),
+      bl: this.projectPt(pad.x, frontY, dFront),
+    };
+  }
+
+  private floorTileQuad(
+    pad: { x: number; y: number; w: number; h: number },
+    pRaw: number,
+  ): { tl: Pt; tr: Pt; br: Pt; bl: Pt } {
+    const dFront = this.depthAt(pRaw);
+    const dBack = this.depthAt(pRaw - 0.09);
+    return this.laneSliceQuad(pad, dBack, dFront);
   }
 
   draw(
@@ -293,14 +289,14 @@ export class Scene {
     ctx.fillStyle = '#05050a';
     ctx.fillRect(0, 0, W, H);
 
-    // Fondo del modo juego: loop MP4 (ya incluye la pista).
-    if (this.bgVideo && this.bgVideo.readyState >= 2) {
+    // Fondo del modo juego: loop MP4.
+    const inGameScene = Boolean(this.bgVideo && this.bgVideo.readyState >= 2);
+    if (inGameScene && this.bgVideo) {
       this.drawVideoCover(this.bgVideo, { x: 0, y: 0, w: W, h: H }, false, 1);
     }
 
     // Cámara a pantalla completa (fuera del juego): usa "contain" para no recortar el cuerpo.
-    const camRect = this.bgVideo ? this.pipRect() : null;
-    if (!camRect && video && video.videoWidth > 0) {
+    if (!this.bgVideo && video && video.videoWidth > 0) {
       const rect = { x: 0, y: 0, w: W, h: H };
       this.drawVideoCover(video, rect, true, 0.85, true);
       this.drawRect = this.fitRect(video, rect, true);
@@ -311,64 +307,76 @@ export class Scene {
       this.statusEl.classList.remove('ok');
     }
 
-    // Los pads van bajo las notas: la placa de pie aterriza sobre su cuadrado.
+    // Actualizar destellos de contacto antes de dibujar los pads para que se
+    // enciendan en el mismo fotograma en que la pieza toca la línea inferior.
+    if (game) {
+      const now = performance.now();
+      for (const note of game.notes) {
+        if (note.state !== 'pending') continue;
+        const until = note.time - game.songTime;
+        if (until <= 35 && until >= -240) {
+          for (const lane of this.lanesOf(note)) {
+            const prev = this.padFlash.get(lane) ?? 0;
+            this.padFlash.set(lane, Math.max(prev, now + 110));
+          }
+        }
+      }
+    }
+
+    // Pista en perspectiva alineada con los 4 pads 3D en primer plano.
+    if (this.bgVideo || game) {
+      this.drawRunwayOverlay();
+    }
     this.drawPads();
     if (game) this.drawNotes(game);
     this.drawStamps();
     this.drawRings();
     this.drawFrags();
 
-    // En juego: cámara en vertical (PiP) debajo del cuadro vertical de la silueta guía.
-    if (camRect && video && video.videoWidth > 0) {
-      this.drawVideoCover(video, camRect, true, 0.92, false);
-      this.drawRect = this.fitRect(video, camRect, false);
-      if (landmarks) this.drawSkeleton(landmarks, camRect);
-      ctx.save();
-      ctx.strokeStyle = 'rgba(232,232,240,0.55)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(camRect.x, camRect.y, camRect.w, camRect.h);
-      ctx.restore();
+    // En modo juego: un único panel vertical a la izquierda con la silueta en
+    // tiempo real de la persona (filtro oscuro + borde blanco continuo), tal
+    // como en STAY ON BEAT #18.
+    if (this.bgVideo || game) {
+      this.drawLiveSilhouettePanel(video, landmarks, game);
     }
 
     if (game) {
-      this.drawGuide(game);
-      this.drawRating(game);
       this.drawCombo(game.combo);
+      this.drawRating(game);
       this.drawProgress(game);
     }
     this.drawHudText(warnings, overlayText);
   }
 
-  /** Barra de progreso de la sesión, arriba al centro. */
+  /**
+   * Barra de progreso arcoíris a todo el ancho en el borde inferior de la
+   * pantalla, idéntica al referente STAY ON BEAT #18.
+   */
   private drawProgress(game: GameView): void {
     if (!game.durationMs) return;
     const { ctx, canvas } = this;
-    const rail = this.images.get('progress-rail');
-    const fill = this.images.get('progress-fill');
-    const w = canvas.width * 0.42;
-    const h = canvas.height * 0.022;
-    const x = (canvas.width - w) / 2;
-    const y = 14;
+    const W = canvas.width;
+    const H = canvas.height;
+    const barH = Math.max(6, Math.round(H * 0.009));
+    const y = H - barH;
     const p = Math.min(Math.max(game.songTime / game.durationMs, 0), 1);
-    if (rail) {
-      const rw = h * (rail.width / rail.height);
-      ctx.drawImage(rail, x - (rw - w) / 2, y, rw, h);
-    } else {
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      ctx.fillRect(x, y, w, h);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(10, 12, 22, 0.78)';
+    ctx.fillRect(0, y, W, barH);
+    if (p > 0) {
+      const grad = ctx.createLinearGradient(0, y, W, y);
+      grad.addColorStop(0, '#ff3ec8');
+      grad.addColorStop(0.28, '#ffd23e');
+      grad.addColorStop(0.55, '#3eff8a');
+      grad.addColorStop(0.8, '#29e6ff');
+      grad.addColorStop(1, '#a05dff');
+      ctx.shadowColor = '#29e6ff';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, y, W * p, barH);
     }
-    if (fill && p > 0) {
-      const iw = fill.width * p;
-      ctx.drawImage(fill, 0, 0, iw, fill.height, x, y, w * p, h);
-    }
-    if (game.paused) {
-      ctx.save();
-      ctx.textAlign = 'center';
-      ctx.font = '700 34px "Segoe UI", sans-serif';
-      ctx.fillStyle = '#ffd23e';
-      ctx.fillText('PAUSA', canvas.width / 2, canvas.height * 0.45);
-      ctx.restore();
-    }
+    ctx.restore();
   }
 
   /** Panel de resultados al terminar la sesión. */
@@ -658,232 +666,1162 @@ export class Scene {
 
   /** Punto de fuga donde aparecen las notas. */
   private vanishingPoint(): { x: number; y: number } {
-    return { x: this.canvas.width / 2, y: this.canvas.height * 0.42 };
+    return { x: this.canvas.width / 2, y: this.canvas.height * 0.43 };
+  }
+
+  /** Bordes exteriores de la pista negra a la altura frontal de los pads (d = 1). */
+  private trackEdgesAtPads(): { leftX: number; rightX: number; frontY: number } {
+    const p0 = this.padRect(0);
+    const p3 = this.padRect(3);
+    const margin = this.canvas.width * 0.012;
+    return {
+      leftX: p0.x - margin,
+      rightX: p3.x + p3.w + margin,
+      frontY: p0.y + p0.h,
+    };
   }
 
   /**
-   * Caras laterales translúcidas + aristas de neón entre el frente (e) y la
-   * trasera (e − depth) de una losa: el obstáculo tiene volumen y se ve
-   * "largo" avanzando por el túnel, como en la referencia.
+   * Pista negra trapezoidal con bordes de neón cian (izquierda) y magenta
+   * (derecha) que abrazan exactamente los 4 pads frontales, como en el video
+   * de referencia STAY ON BEAT #18.
    */
-  private drawSlabSides(
-    front: { x: number; y: number; w: number; h: number },
-    back: { x: number; y: number; w: number; h: number },
-    rgb: string,
-  ): void {
-    const { ctx } = this;
-    const F = [
-      [front.x, front.y],
-      [front.x + front.w, front.y],
-      [front.x + front.w, front.y + front.h],
-      [front.x, front.y + front.h],
-    ];
-    const B = [
-      [back.x, back.y],
-      [back.x + back.w, back.y],
-      [back.x + back.w, back.y + back.h],
-      [back.x, back.y + back.h],
-    ];
+  private drawRunwayOverlay(): void {
+    const { ctx, canvas } = this;
+    const W = canvas.width;
+    const H = canvas.height;
+    const vp = this.vanishingPoint();
+    const { leftX, rightX, frontY } = this.trackEdgesAtPads();
+    const dBottom = (H - vp.y) / Math.max(1, frontY - vp.y);
+    const bLeft = vp.x + (leftX - vp.x) * dBottom;
+    const bRight = vp.x + (rightX - vp.x) * dBottom;
+    const dTop = 0.08;
+    const topLeft = this.projectPt(leftX, frontY, dTop);
+    const topRight = this.projectPt(rightX, frontY, dTop);
+
     ctx.save();
-    for (let i = 0; i < 4; i++) {
-      const j = (i + 1) % 4;
-      ctx.fillStyle = `rgba(${rgb},0.14)`;
+    // Oscurecer suavemente las líneas antiguas demasiado abiertas del MP4 fuera de nuestra pista.
+    const floorGradL = ctx.createLinearGradient(0, vp.y, bLeft, H);
+    floorGradL.addColorStop(0, 'rgba(5, 7, 16, 0.25)');
+    floorGradL.addColorStop(1, 'rgba(5, 7, 16, 0.92)');
+    ctx.fillStyle = floorGradL;
+    ctx.beginPath();
+    ctx.moveTo(0, topLeft.y);
+    ctx.lineTo(topLeft.x, topLeft.y);
+    ctx.lineTo(bLeft, H);
+    ctx.lineTo(0, H);
+    ctx.closePath();
+    ctx.fill();
+
+    const floorGradR = ctx.createLinearGradient(W, vp.y, bRight, H);
+    floorGradR.addColorStop(0, 'rgba(5, 7, 16, 0.25)');
+    floorGradR.addColorStop(1, 'rgba(5, 7, 16, 0.92)');
+    ctx.fillStyle = floorGradR;
+    ctx.beginPath();
+    ctx.moveTo(topRight.x, topRight.y);
+    ctx.lineTo(W, topRight.y);
+    ctx.lineTo(W, H);
+    ctx.lineTo(bRight, H);
+    ctx.closePath();
+    ctx.fill();
+
+    // Superficie negra brillante de la pista central.
+    const trackGrad = ctx.createLinearGradient(0, topLeft.y, 0, H);
+    trackGrad.addColorStop(0, '#050812');
+    trackGrad.addColorStop(0.6, '#030409');
+    trackGrad.addColorStop(1, '#060811');
+    ctx.fillStyle = trackGrad;
+    ctx.beginPath();
+    ctx.moveTo(topLeft.x, topLeft.y);
+    ctx.lineTo(topRight.x, topRight.y);
+    ctx.lineTo(bRight, H);
+    ctx.lineTo(bLeft, H);
+    ctx.closePath();
+    ctx.fill();
+
+    // Guías longitudinales entre los 4 carriles desde el fondo hasta los pads.
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.11)';
+    ctx.lineWidth = 1.2;
+    for (let i = 0; i < 3; i++) {
+      const rA = this.padRect(i);
+      const rB = this.padRect(i + 1);
+      const midX = (rA.x + rA.w + rB.x) / 2;
+      const pStart = this.projectPt(midX, frontY, dTop);
+      const pEnd = this.projectPt(midX, frontY, dBottom);
       ctx.beginPath();
-      ctx.moveTo(F[i][0], F[i][1]);
-      ctx.lineTo(F[j][0], F[j][1]);
-      ctx.lineTo(B[j][0], B[j][1]);
-      ctx.lineTo(B[i][0], B[i][1]);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = `rgba(${rgb},0.55)`;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(F[i][0], F[i][1]);
-      ctx.lineTo(B[i][0], B[i][1]);
+      ctx.moveTo(pStart.x, pStart.y);
+      ctx.lineTo(pEnd.x, pEnd.y);
       ctx.stroke();
     }
+
+    // Riel izquierdo cian neón + núcleo blanco.
+    ctx.shadowColor = '#29e6ff';
+    ctx.shadowBlur = 14;
+    ctx.strokeStyle = '#29e6ff';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(topLeft.x, topLeft.y);
+    ctx.lineTo(bLeft, H);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#d8fbff';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Riel derecho magenta neón + núcleo blanco.
+    ctx.shadowColor = '#ff3ec8';
+    ctx.shadowBlur = 14;
+    ctx.strokeStyle = '#ff3ec8';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(topRight.x, topRight.y);
+    ctx.lineTo(bRight, H);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#ffdbf5';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  /**
+   * Dibuja un prisma 3D en perspectiva proyectado desde el punto de fuga `vp`
+   * entre las profundidades `dBack` y `dFront`. Usado para las paredes de
+   * esquiva ("wall-left" / "wall-right") y las vallas ("duck" / "jump"),
+   * replicando las losas translúcidas con flechas del video de referencia.
+   */
+  private drawObstaclePrism(
+    kind: Note['kind'],
+    pRaw: number,
+    alpha: number,
+  ): void {
+    const { ctx, canvas } = this;
+    const W = canvas.width;
+    const H = canvas.height;
+    const { leftX, rightX, frontY } = this.trackEdgesAtPads();
+    const isWall = kind === 'wall-left' || kind === 'wall-right';
+
+    // En el referente:
+    // - Si debes esquivar a la IZQUIERDA (wall-left, flechas < <), la pared
+    //   bloquea la mitad DERECHA de la pista (carriles 2 y 3) y deja libres 0 y 1.
+    // - Si debes esquivar a la DERECHA (wall-right, flechas > >), la pared
+    //   bloquea la mitad IZQUIERDA de la pista (carriles 0 y 1) y deja libres 2 y 3.
+    let x0: number;
+    let x1: number;
+    let y0: number;
+    let y1: number;
+    let thicknessP: number;
+    let rgbFill: string;
+    let hexEdge: string;
+
+    if (isWall) {
+      const blocksLeftHalf = kind === 'wall-right';
+      x0 = blocksLeftHalf ? leftX : W * 0.5;
+      x1 = blocksLeftHalf ? W * 0.5 : rightX;
+      y0 = -H * 0.06;
+      y1 = frontY;
+      thicknessP = 0.14;
+      rgbFill = '235, 145, 38';
+      hexEdge = '#fff5e4';
+    } else if (kind === 'duck') {
+      x0 = leftX - W * 0.03;
+      x1 = rightX + W * 0.03;
+      y0 = H * 0.04;
+      y1 = H * 0.34;
+      thicknessP = 0.085;
+      rgbFill = '245, 175, 42';
+      hexEdge = '#fff8eb';
+    } else {
+      // jump: valla baja transversal sobre la pista
+      x0 = leftX - W * 0.02;
+      x1 = rightX + W * 0.02;
+      y0 = H * 0.71;
+      y1 = frontY;
+      thicknessP = 0.08;
+      rgbFill = '41, 230, 255';
+      hexEdge = '#e8fcff';
+    }
+
+    const dFront = this.depthAt(pRaw);
+    const dBack = this.depthAt(pRaw - thicknessP);
+
+    const F = [
+      this.projectPt(x0, y0, dFront), // 0: top-left
+      this.projectPt(x1, y0, dFront), // 1: top-right
+      this.projectPt(x1, y1, dFront), // 2: bottom-right
+      this.projectPt(x0, y1, dFront), // 3: bottom-left
+    ];
+    const B = [
+      this.projectPt(x0, y0, dBack),
+      this.projectPt(x1, y0, dBack),
+      this.projectPt(x1, y1, dBack),
+      this.projectPt(x0, y1, dBack),
+    ];
+
+    const poly = (pts: Pt[], fill: string, stroke?: string, lw = 2) => {
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.closePath();
+      ctx.fillStyle = fill;
+      ctx.fill();
+      if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = lw;
+        ctx.stroke();
+      }
+    };
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // 1. Cara trasera con aspa diagonal (X) como en el referente.
+    poly(B, `rgba(${rgbFill}, 0.16)`, `rgba(255,255,255,0.65)`, 1.6);
+    ctx.strokeStyle = `rgba(255,255,255,0.35)`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(B[0].x, B[0].y);
+    ctx.lineTo(B[2].x, B[2].y);
+    ctx.moveTo(B[1].x, B[1].y);
+    ctx.lineTo(B[3].x, B[3].y);
+    ctx.stroke();
+
+    // 2. Caras laterales, superior e inferior del volumen 3D.
+    poly([F[3], F[2], B[2], B[3]], `rgba(${rgbFill}, 0.28)`); // base sobre el suelo
+    poly([F[0], F[1], B[1], B[0]], `rgba(${rgbFill}, 0.18)`); // techo
+    poly([F[0], B[0], B[3], F[3]], `rgba(${rgbFill}, 0.24)`); // pared izquierda
+    poly([F[1], B[1], B[2], F[2]], `rgba(${rgbFill}, 0.24)`); // pared derecha
+
+    // Refuerzos diagonales en las caras laterales (visibles en el referente).
+    ctx.strokeStyle = `rgba(255,255,255,0.38)`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(F[0].x, F[0].y);
+    ctx.lineTo(B[3].x, B[3].y);
+    ctx.moveTo(F[1].x, F[1].y);
+    ctx.lineTo(B[2].x, B[2].y);
+    ctx.stroke();
+
+    // 3. Aristas longitudinales brillantes hacia el punto de fuga.
+    ctx.shadowColor = `rgb(${rgbFill})`;
+    ctx.shadowBlur = 14;
+    ctx.strokeStyle = hexEdge;
+    ctx.lineWidth = Math.max(2, 3.8 * dFront);
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      ctx.moveTo(F[i].x, F[i].y);
+      ctx.lineTo(B[i].x, B[i].y);
+      ctx.stroke();
+    }
+
+    // 4. Cara frontal translúcida con marco luminoso y cheurones direccionales.
+    poly(F, `rgba(${rgbFill}, 0.20)`, hexEdge, Math.max(2.2, 4.0 * dFront));
+    ctx.shadowBlur = 0;
+
+    if (isWall) {
+      // Dos cheurones verticales (< < o > >) en la tapa indicando hacia qué lado esquivar.
+      const dir = kind === 'wall-left' ? -1 : 1; // -1 = apunta a la izquierda (<)
+      const cap = dFront > 0.95 ? B : F;
+      const cw = cap[1].x - cap[0].x;
+      const ch = cap[3].y - cap[0].y;
+      const cx = (cap[0].x + cap[1].x) / 2;
+      ctx.strokeStyle = '#ffd86b';
+      ctx.shadowColor = '#ffae29';
+      ctx.shadowBlur = 10;
+      ctx.lineWidth = Math.max(2.2, cw * 0.045);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      for (const vy of [0.34, 0.66]) {
+        const cy = cap[0].y + ch * vy;
+        const dx = cw * 0.14 * dir;
+        const dy = ch * 0.11;
+        ctx.beginPath();
+        ctx.moveTo(cx - dx, cy - dy);
+        ctx.lineTo(cx + dx, cy);
+        ctx.lineTo(cx - dx, cy + dy);
+        ctx.stroke();
+      }
+    } else {
+      // Tres cheurones amarillos/cian a lo ancho de la valla (∨ ∨ ∨ para duck, ∧ ∧ ∧ para jump).
+      const fw = F[1].x - F[0].x;
+      const fh = F[3].y - F[0].y;
+      const down = kind === 'duck';
+      ctx.strokeStyle = down ? '#ffd23e' : '#29e6ff';
+      ctx.shadowColor = down ? '#ff9f1c' : '#29e6ff';
+      ctx.shadowBlur = 12;
+      ctx.lineWidth = Math.max(2.5, fh * 0.11);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      for (const fx of [0.22, 0.5, 0.78]) {
+        const cx = F[0].x + fw * fx;
+        const yTopChev = F[0].y + fh * 0.24;
+        const yBotChev = F[0].y + fh * 0.76;
+        const spanX = fw * 0.075;
+        ctx.beginPath();
+        if (down) {
+          ctx.moveTo(cx - spanX, yTopChev);
+          ctx.lineTo(cx, yBotChev);
+          ctx.lineTo(cx + spanX, yTopChev);
+        } else {
+          ctx.moveTo(cx - spanX, yBotChev);
+          ctx.lineTo(cx, yTopChev);
+          ctx.lineTo(cx + spanX, yBotChev);
+        }
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Dibuja una placa de pie en perspectiva sobre el suelo de su carril:
+   * baldosa de neón sólido con bisel frontal 3D y silueta negra de huella
+   * (talón + planta + dedos), idéntica al referente (t0221 / t0295).
+   */
+  private drawFootTile(lane: number, pRaw: number, alpha: number): void {
+    const { ctx } = this;
+    const pad = this.padRect(lane);
+    const colorName = PAD_COLORS[lane];
+    const hex = PAD_HEX[colorName];
+    const dFront = this.depthAt(pRaw);
+    const q = this.floorTileQuad(pad, pRaw);
+    const lipH = Math.max(2, this.canvas.height * 0.011 * dFront);
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // Bisel frontal 3D de la baldosa.
+    ctx.fillStyle = 'rgba(10, 12, 20, 0.85)';
+    ctx.beginPath();
+    ctx.moveTo(q.bl.x, q.bl.y);
+    ctx.lineTo(q.br.x, q.br.y);
+    ctx.lineTo(q.br.x, q.br.y + lipH);
+    ctx.lineTo(q.bl.x, q.bl.y + lipH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Cara superior sólida de neón brillante.
+    ctx.shadowColor = hex;
+    ctx.shadowBlur = 16 * dFront;
+    ctx.fillStyle = hex;
+    ctx.beginPath();
+    ctx.moveTo(q.tl.x, q.tl.y);
+    ctx.lineTo(q.tr.x, q.tr.y);
+    ctx.lineTo(q.br.x, q.br.y);
+    ctx.lineTo(q.bl.x, q.bl.y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Borde interno claro.
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.lineWidth = Math.max(1, 2 * dFront);
+    ctx.stroke();
+
+    // Silueta negra nítida de huella en el centro del trapecio.
+    const mapUV = (u: number, v: number): Pt => {
+      const topX = q.tl.x + (q.tr.x - q.tl.x) * u;
+      const topY = q.tl.y + (q.tr.y - q.tl.y) * u;
+      const botX = q.bl.x + (q.br.x - q.bl.x) * u;
+      const botY = q.bl.y + (q.br.y - q.bl.y) * u;
+      return {
+        x: topX + (botX - topX) * v,
+        y: topY + (botY - topY) * v,
+      };
+    };
+    const isLeftFoot = lane <= 1;
+    const uSign = isLeftFoot ? 1 : -1;
+    const cSole = mapUV(0.5 - 0.02 * uSign, 0.44);
+    const cHeel = mapUV(0.5 + 0.02 * uSign, 0.74);
+    const wTile = Math.hypot(q.br.x - q.bl.x, q.br.y - q.bl.y);
+    const hTile = Math.max(3, Math.abs(q.bl.y - q.tl.y));
+
+    ctx.fillStyle = '#07080e';
+    // Planta delantera
+    ctx.beginPath();
+    ctx.ellipse(cSole.x, cSole.y, wTile * 0.14, hTile * 0.18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Talón
+    ctx.beginPath();
+    ctx.ellipse(cHeel.x, cHeel.y, wTile * 0.105, hTile * 0.14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // 5 dedos del pie
+    const toes = [-0.12, -0.055, 0.005, 0.06, 0.11];
+    for (let tIdx = 0; tIdx < toes.length; tIdx++) {
+      const uToe = 0.5 + toes[tIdx] * uSign;
+      const vToe = 0.19 + Math.abs(tIdx - 1.5) * 0.025;
+      const pToe = mapUV(uToe, vToe);
+      const rFactor = tIdx === 0 ? 1.25 : 1 - tIdx * 0.11;
+      ctx.beginPath();
+      ctx.ellipse(
+        pToe.x,
+        pToe.y,
+        Math.max(1, wTile * 0.032 * rFactor),
+        Math.max(1, hTile * 0.055 * rFactor),
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Dibuja un bloque de puño 3D flotando en la parte superior del túnel con
+   * cola extruida hacia el punto de fuga y cara frontal de neón sólido con el
+   * icono de puño negro en alto contraste (idéntico a `audit-t0187` / `t0369`).
+   * Está alineado verticalmente con el centro exacto de su pad receptor.
+   */
+  private drawHandBlock(lane: number, pRaw: number, alpha: number): void {
+    const { ctx } = this;
+    const pad = this.padRect(lane);
+    const colorName = PAD_COLORS[lane];
+    const hex = PAD_HEX[colorName];
+    const target = this.handTargetCenter(lane);
+    const fullSize = pad.w * 0.82;
+
+    const dFront = this.depthAt(pRaw);
+    const dBack = this.depthAt(pRaw - 0.11);
+    const sFront = fullSize * dFront;
+    const sBack = fullSize * dBack;
+
+    // El bloque flota arriba en el aire en (target.x, target.y) proyectado desde el punto de fuga.
+    const cFront = this.projectPt(target.x, target.y, dFront);
+    const cBack = this.projectPt(target.x, target.y, dBack);
+
+    const fRect = { x: cFront.x - sFront / 2, y: cFront.y - sFront / 2, w: sFront, h: sFront };
+    const bRect = { x: cBack.x - sBack / 2, y: cBack.y - sBack / 2, w: sBack, h: sBack };
+
+    const F: Pt[] = [
+      { x: fRect.x, y: fRect.y },
+      { x: fRect.x + fRect.w, y: fRect.y },
+      { x: fRect.x + fRect.w, y: fRect.y + fRect.h },
+      { x: fRect.x, y: fRect.y + fRect.h },
+    ];
+    const B: Pt[] = [
+      { x: bRect.x, y: bRect.y },
+      { x: bRect.x + bRect.w, y: bRect.y },
+      { x: bRect.x + bRect.w, y: bRect.y + bRect.h },
+      { x: bRect.x, y: bRect.y + bRect.h },
+    ];
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // Cola 3D extruida hacia el punto de fuga.
+    for (let i = 0; i < 4; i++) {
+      const j = (i + 1) % 4;
+      ctx.fillStyle = hex;
+      ctx.globalAlpha = alpha * (i === 0 ? 0.52 : i === 2 ? 0.35 : 0.44);
+      ctx.beginPath();
+      ctx.moveTo(F[i].x, F[i].y);
+      ctx.lineTo(F[j].x, F[j].y);
+      ctx.lineTo(B[j].x, B[j].y);
+      ctx.lineTo(B[i].x, B[i].y);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Cara frontal redondeada de neón brillante.
+    ctx.globalAlpha = alpha;
+    ctx.shadowColor = hex;
+    ctx.shadowBlur = 18 * dFront;
+    ctx.fillStyle = hex;
+    const rad = Math.max(4, sFront * 0.15);
+    ctx.beginPath();
+    ctx.roundRect(fRect.x, fRect.y, fRect.w, fRect.h, rad);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.lineWidth = Math.max(1.5, 2.5 * dFront);
+    ctx.stroke();
+
+    // Icono de puño frontal con nudillos y pulgar en trazos oscuros nítidos (como en audit-t0187).
+    const isLeftHand = lane <= 1;
+    const flip = isLeftHand ? 1 : -1;
+    ctx.save();
+    ctx.translate(cFront.x, cFront.y);
+    ctx.scale(flip, 1);
+    const u = sFront * 0.32;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.strokeStyle = '#090a10';
+    ctx.lineWidth = Math.max(1.6, sFront * 0.042);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Contorno exterior del puño cerrado
+    ctx.beginPath();
+    ctx.roundRect(-u * 0.95, -u * 0.68, u * 1.9, u * 1.25, u * 0.32);
+    ctx.fill();
+    ctx.stroke();
+
+    // 4 dedos plegados verticales (nudillos frontales)
+    for (const kx of [-0.46, -0.15, 0.16, 0.47]) {
+      ctx.beginPath();
+      ctx.moveTo(u * kx, -u * 0.62);
+      ctx.lineTo(u * kx, u * 0.22);
+      ctx.stroke();
+    }
+
+    // Pulgar cruzado debajo de los dedos
+    ctx.fillStyle = hex;
+    ctx.beginPath();
+    ctx.roundRect(-u * 0.25, u * 0.18, u * 1.15, u * 0.44, u * 0.2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
     ctx.restore();
   }
 
   private drawNotes(game: GameView): void {
-    const { ctx } = this;
-    const vp = this.vanishingPoint();
-    const now = performance.now();
-    for (const note of game.notes) {
-      if (note.state !== 'pending') continue;
+    // Pintar de más lejana a más cercana (painter's algorithm) para que los
+    // volúmenes 3D se superpongan con profundidad real.
+    const visible = game.notes
+      .filter((n) => {
+        if (n.state !== 'pending') return false;
+        const until = n.time - game.songTime;
+        return until <= game.travelMs && until >= -160;
+      })
+      .sort((a, b) => b.time - a.time);
+
+    for (const note of visible) {
       const until = note.time - game.songTime;
-      if (until > game.travelMs || until < -300) continue;
-      const p = 1 - Math.max(until, 0) / game.travelMs; // 0 lejos → 1 en el pad
-      const e = p * p; // aceleración hacia la cámara
-      // La pieza está sobre la línea de juicio: su pad se enciende aunque no se toque.
-      if (until <= 0) {
-        for (const lane of this.lanesOf(note)) this.padFlash.set(lane, now + 100);
-      }
-      ctx.save();
-      ctx.globalAlpha = Math.min(1, p * 4) * (until < 0 ? 0.5 : 1);
+      const pRaw = 1 - until / game.travelMs; // 0 en la boca del túnel → 1 en el pad → >1 al cruzar
+      const p = Math.max(0, Math.min(1, pRaw));
+      const fadeIn = Math.min(1, 0.55 + p * 8.0);
+      const fadeOut = until < 0 ? Math.max(0, 1 + until / 160) * 0.65 : 1;
+      const alpha = fadeIn * fadeOut;
+
       if (isObstacle(note.kind)) {
-        const img = this.images.get(`obs-${note.kind}`);
-        if (!img) {
-          ctx.restore();
-          continue;
-        }
-        const W = this.canvas.width;
-        const pad0 = this.padRect(0);
-        const isWall = note.kind === 'wall-left' || note.kind === 'wall-right';
-        // Profundidad de la losa: las paredes son más largas que las vallas.
-        const depth = isWall ? 0.3 : 0.15;
-        const rectAt = (d: number) => {
-          if (isWall) {
-            // Pared translúcida que cubre medio túnel en su lado.
-            const w = W * 0.5 * (0.25 + 0.75 * d);
-            const h = w * (img.height / img.width);
-            const cx = note.kind === 'wall-left' ? W * 0.27 : W * 0.73;
-            const y = vp.y + (pad0.y + pad0.h * 0.4 - vp.y) * d;
-            return { x: cx - w / 2, y: y - h * 0.6, w, h };
-          }
-          // Valla: barrera baja/ancha centrada en la pista.
-          const w = W * 0.42 * (0.25 + 0.9 * d);
-          const h = w * (img.height / img.width);
-          const y = vp.y + (pad0.y + pad0.h * 0.3 - vp.y) * d;
-          return { x: W / 2 - w / 2, y: y - h, w, h };
-        };
-        const tint = isWall ? '255,46,99' : '255,210,62';
-        this.drawSlabSides(rectAt(e), rectAt(Math.max(0.001, e - depth)), tint);
-        const front = rectAt(e);
-        ctx.globalAlpha *= 0.85;
-        ctx.drawImage(img, front.x, front.y, front.w, front.h);
+        this.drawObstaclePrism(note.kind, pRaw, alpha);
+      } else if (note.kind === 'hand') {
+        this.drawHandBlock(note.lane as number, pRaw, alpha);
       } else {
-        const pad = this.padRect(note.lane as number);
-        if (note.kind === 'hand') {
-          // Puños: llegan a altura de cara/pecho (~30% de la pantalla), como en la
-          // referencia — no aterrizan en el pad, flotan altos al llegar.
-          const target = this.padCenter(note.lane);
-          const x = vp.x + (target.x - vp.x) * e;
-          const y = vp.y + (this.handNoteY() - vp.y) * e;
-          const size = pad.h * (0.3 + 1.4 * e);
-          const img = this.images.get(`note-${note.lane}`);
-          if (img) ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
-        } else {
-          // Pies: placa acostada sobre la pista, deformada en perspectiva hacia
-          // el punto de fuga — en los carriles laterales se ve inclinada, como
-          // en la referencia.
-          const img = this.images.get(`note-${note.lane}`);
-          if (img) this.drawImageQuad(img, this.floorTileQuad(pad, e));
-        }
-      }
-      ctx.restore();
-    }
-  }
-
-  /** Panel guía enmarcado con la silueta del próximo obstáculo, arriba a la izquierda (en vertical). */
-  private drawGuide(game: GameView): void {
-    const { ctx } = this;
-    const next = game.notes.find(
-      (n) => n.state === 'pending' && isObstacle(n.kind) && n.time - game.songTime < game.travelMs,
-    );
-    const { x: px, topY: py, w: pw, h: ph } = this.sideBoxMetrics();
-    const panel = this.images.get('guide-panel');
-    const pose = next ? this.images.get(`pose-${next.kind}`) : this.images.get('pose-neutral');
-    const until = next ? next.time - game.songTime : Infinity;
-    const pulse = next
-      ? until < 800
-        ? 0.75 + 0.25 * Math.sin(performance.now() / 80)
-        : 0.65
-      : 0.45;
-    ctx.save();
-    ctx.globalAlpha = Math.min(1, pulse);
-    if (panel) {
-      ctx.drawImage(panel, px, py, pw, ph);
-    } else {
-      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(px, py, pw, ph);
-    }
-    if (pose) {
-      const ih = ph * 0.78;
-      const iw = ih * (pose.width / pose.height);
-      ctx.drawImage(pose, px + (pw - iw) / 2, py + (ph - ih) / 2, iw, ih);
-    }
-    ctx.restore();
-  }
-
-  private drawRating(game: GameView): void {
-    if (!game.rating || performance.now() > game.ratingUntil) return;
-    const img = this.images.get(`rating-${game.rating}`);
-    if (!img) return;
-    const w = this.canvas.width * 0.24;
-    const h = w * (img.height / img.width);
-    const { ctx, canvas } = this;
-    ctx.save();
-    // Sello inclinado como en la referencia, bajo el combo.
-    ctx.translate(canvas.width * 0.72, canvas.height * 0.16);
-    ctx.rotate(-0.14);
-    ctx.drawImage(img, -w / 2, -h / 2, w, h);
-    ctx.restore();
-  }
-
-  private drawCombo(combo: number): void {
-    const { ctx, canvas } = this;
-    const label = this.images.get('combo-label');
-    const h = canvas.height * 0.05;
-    if (label) {
-      const w = h * (label.width / label.height);
-      ctx.drawImage(label, canvas.width - w - 24, 20, w, h);
-    }
-    const digits = String(combo);
-    const dh = canvas.height * 0.09;
-    let x = canvas.width - 24 - digits.length * dh * 0.62;
-    for (const ch of digits) {
-      const img = this.images.get(`digit-${ch}`);
-      if (img) {
-        const dw = dh * (img.width / img.height);
-        ctx.drawImage(img, x, 20 + h + 6, dw, dh);
-        x += dh * 0.62;
+        this.drawFootTile(note.lane as number, pRaw, alpha);
       }
     }
   }
 
   /**
-   * Cuadrados sutiles al final de cada carril: la línea de juicio donde las
-   * piezas se resuelven (tocada o perdida). Apenas marcados en reposo; se
-   * iluminan con el color del carril al contacto, como en la referencia.
+   * Único panel vertical a la izquierda (como en STAY ON BEAT #18):
+   * muestra el movimiento en tiempo real de la persona captado por la cámara,
+   * con filtro oscuro, la silueta humana negra bordeada en blanco continuo y
+   * una mini-pista inferior dividida en los 4 carriles con sus 4 teclas/pads
+   * que se iluminan coordinadamente con las notas entrantes y con la pose real.
+   */
+  private drawLiveSilhouettePanel(
+    video: HTMLVideoElement | null,
+    landmarks: Landmark[] | null,
+    game?: GameView,
+  ): void {
+    const { ctx } = this;
+    const rect = this.silhouettePanelRect();
+    const { x: px, y: py, w: pw, h: ph } = rect;
+    const now = performance.now();
+
+    // 1. Suavizado exponencial de los landmarks para que la silueta se mueva fluida.
+    if (landmarks && landmarks.length >= 33) {
+      if (!this.smoothLms) {
+        this.smoothLms = landmarks.map((l) => ({
+          x: l.x,
+          y: l.y,
+          visibility: l.visibility ?? 0,
+        }));
+      } else {
+        const k = 0.52;
+        for (let i = 0; i < 33; i++) {
+          const src = landmarks[i];
+          const dst = this.smoothLms[i];
+          if ((src.visibility ?? 0) >= 0.2) {
+            dst.x = dst.x * (1 - k) + src.x * k;
+            dst.y = dst.y * (1 - k) + src.y * k;
+            dst.visibility = src.visibility ?? 0;
+          }
+        }
+      }
+    }
+
+    // Próxima nota pendiente cercana (mano, pie u obstáculo) para iluminar su carril/tecla guía.
+    const nextNote = game?.notes.find((n) => {
+      if (n.state !== 'pending') return false;
+      const until = n.time - game.songTime;
+      return until <= 1900 && until >= -120;
+    });
+    const nextObs = game?.notes.find(
+      (n) => n.state === 'pending' && isObstacle(n.kind) && n.time - game.songTime < game.travelMs,
+    );
+    const activeTargetNote = nextNote ?? nextObs;
+    const targetLanes = activeTargetNote ? new Set(this.lanesOf(activeTargetNote)) : new Set<number>();
+    const noteUntil = activeTargetNote && game ? activeTargetNote.time - game.songTime : Infinity;
+    const urgency = activeTargetNote ? Math.min(1, Math.max(0.25, 1 - Math.max(0, noteUntil) / 1900)) : 0;
+    const pulse = 0.72 + 0.28 * Math.sin(now / 75);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(px, py, pw, ph);
+    ctx.clip();
+
+    // 2. Fondo oscuro con degradado vertical idéntico al panel del referente.
+    const bgGrad = ctx.createLinearGradient(px, py, px, py + ph);
+    bgGrad.addColorStop(0, '#2a2a31');
+    bgGrad.addColorStop(0.55, '#0d0d12');
+    bgGrad.addColorStop(1, '#020205');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(px, py, pw, ph);
+
+    // 3. Filtro oscuro de cámara de fondo (para percibir el feed real atenuado).
+    if (video && video.videoWidth > 0) {
+      this.drawVideoCover(video, rect, true, 0.14, false);
+    }
+
+    // Geometría de los 4 carriles y las 4 teclas inferiores dentro del panel.
+    const padMarginX = Math.round(pw * 0.045);
+    const innerW = pw - padMarginX * 2;
+    const laneGap = Math.max(2, Math.round(pw * 0.018));
+    const laneW = (innerW - laneGap * 3) / 4;
+    const padY = py + Math.round(ph * 0.825);
+    const padH = Math.round(ph * 0.082);
+    const laneX = (i: number) => px + padMarginX + i * (laneW + laneGap);
+
+    // 4. División en 4 carriles verticales + iluminación anticipada de hacia dónde moverse.
+    for (let i = 0; i < 4; i++) {
+      const lx = laneX(i);
+      const color = PAD_HEX[PAD_COLORS[i]];
+      const isTarget = targetLanes.has(i);
+      const isFlashing = (this.padFlash.get(i) ?? 0) > now;
+
+      // En muros de esquiva, sombrear en rojo/ámbar los carriles bloqueados.
+      const isBlockedByWall =
+        (activeTargetNote?.kind === 'wall-left' && (i === 2 || i === 3)) ||
+        (activeTargetNote?.kind === 'wall-right' && (i === 0 || i === 1));
+
+      if (isBlockedByWall) {
+        const blockGrad = ctx.createLinearGradient(0, py + ph * 0.12, 0, padY + padH);
+        blockGrad.addColorStop(0, 'rgba(255, 90, 38, 0.06)');
+        blockGrad.addColorStop(1, `rgba(255, 90, 38, ${0.24 * urgency})`);
+        ctx.fillStyle = blockGrad;
+        ctx.fillRect(lx, py + ph * 0.12, laneW, padY + padH - (py + ph * 0.12));
+      } else if (isTarget || isFlashing) {
+        const glowAlpha = isFlashing ? 0.36 : 0.24 * urgency * pulse;
+        const colGrad = ctx.createLinearGradient(0, py + ph * 0.16, 0, padY);
+        colGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        colGrad.addColorStop(0.55, color + '22');
+        colGrad.addColorStop(1, color);
+        ctx.save();
+        ctx.globalAlpha = glowAlpha;
+        ctx.fillStyle = colGrad;
+        ctx.fillRect(lx, py + ph * 0.16, laneW, padY - (py + ph * 0.16));
+        ctx.restore();
+      }
+
+      // Líneas divisorias verticales entre los 4 carriles.
+      if (i > 0) {
+        const divX = lx - laneGap / 2;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.13)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 5]);
+        ctx.beginPath();
+        ctx.moveTo(divX, py + ph * 0.15);
+        ctx.lineTo(divX, padY + padH);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+
+    // 5. Si se aproxima un obstáculo, dibujar tenue silueta guía de referencia detrás.
+    if (nextObs) {
+      const poseImg = this.images.get(`pose-${nextObs.kind}`);
+      if (poseImg) {
+        ctx.save();
+        ctx.globalAlpha = 0.22;
+        const ih = ph * 0.72;
+        const iw = ih * (poseImg.width / poseImg.height);
+        ctx.drawImage(poseImg, px + (pw - iw) / 2, py + ph * 0.08, iw, ih);
+        ctx.restore();
+      }
+    }
+
+    // 6. Silueta humana en tiempo real anclada sobre las 4 teclas inferiores:
+    // relleno negro + contorno exterior blanco continuo en 2 pasadas.
+    if (!this.silCanvas || this.silCanvas.width !== pw || this.silCanvas.height !== ph) {
+      this.silCanvas = document.createElement('canvas');
+      this.silCanvas.width = Math.max(1, pw);
+      this.silCanvas.height = Math.max(1, ph);
+    }
+    const sctx = this.silCanvas.getContext('2d');
+    let bodyPts: Record<number, Pt> | null = null;
+    if (sctx) {
+      sctx.clearRect(0, 0, pw, ph);
+      bodyPts = this.renderBodySilhouetteTwoPass(sctx, pw, ph, this.smoothLms);
+      ctx.drawImage(this.silCanvas, px, py);
+    }
+
+    // Determinar en qué carril(es) están apoyados actualmente los pies/manos de la silueta en vivo.
+    const liveFootLane = new Set<number>();
+    if (bodyPts) {
+      for (const anklePt of [bodyPts[LM.leftAnkle], bodyPts[LM.rightAnkle]]) {
+        const relX = anklePt.x - padMarginX;
+        const idx = Math.floor(relX / (laneW + laneGap));
+        if (idx >= 0 && idx < 4) liveFootLane.add(idx);
+      }
+    }
+
+    // 7. Dibujar las 4 teclas/pads inferiores (a los pies de la silueta) con bisel 3D
+    // e indicadores luminosos coordinados con la nota entrante y la posición del jugador.
+    const bevel = Math.max(3, Math.round(ph * 0.014));
+    for (let i = 0; i < 4; i++) {
+      const lx = laneX(i);
+      const color = PAD_HEX[PAD_COLORS[i]];
+      const isTarget = targetLanes.has(i);
+      const isFlashing = (this.padFlash.get(i) ?? 0) > now;
+      const hasFoot = liveFootLane.has(i);
+      const lit = isTarget || isFlashing;
+
+      ctx.save();
+      // Bisel frontal 3D de la tecla.
+      ctx.fillStyle = lit ? color : '#12131b';
+      ctx.globalAlpha = lit ? 0.65 : 0.92;
+      ctx.fillRect(lx, padY + padH - bevel, laneW, bevel);
+
+      // Superficie de la tecla.
+      ctx.globalAlpha = isFlashing ? 0.95 : isTarget ? 0.55 + 0.35 * urgency * pulse : 0.85;
+      ctx.fillStyle = lit ? color : '#232533';
+      if (lit) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = isFlashing ? 16 : 10 * urgency;
+      }
+      ctx.fillRect(lx, padY, laneW, padH - bevel);
+      ctx.shadowBlur = 0;
+
+      // Borde nítido de la tecla (se ilumina también cuando el pie real pisa ese carril).
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = lit
+        ? '#ffffff'
+        : hasFoot
+          ? 'rgba(255, 255, 255, 0.65)'
+          : 'rgba(232, 232, 240, 0.28)';
+      ctx.lineWidth = lit ? 1.8 : 1.1;
+      ctx.strokeRect(lx, padY, laneW, padH - bevel);
+
+      // Punto indicador en vivo si el pie de la silueta está sobre este carril.
+      if (hasFoot) {
+        ctx.fillStyle = lit ? '#07080e' : color;
+        ctx.beginPath();
+        ctx.arc(lx + laneW / 2, padY + (padH - bevel) / 2, Math.max(2.5, laneW * 0.11), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // 8. Indicadores visuales directos sobre el carril/altura objetivo (sin depender solo del texto):
+    if (activeTargetNote) {
+      ctx.save();
+      if (activeTargetNote.kind === 'hand') {
+        // Anillo luminoso en la zona de golpe de mano dentro de su carril (1 o 2).
+        const lane = activeTargetNote.lane as number;
+        const lx = laneX(lane) + laneW / 2;
+        const hy = py + ph * 0.37;
+        const r = Math.max(8, laneW * 0.36);
+        const color = PAD_HEX[PAD_COLORS[lane]];
+        ctx.strokeStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 2.2;
+        ctx.globalAlpha = 0.55 + 0.4 * urgency * pulse;
+        ctx.beginPath();
+        ctx.arc(lx, hy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (activeTargetNote.kind === 'foot') {
+        // Cheurón hacia la tecla del pie que debe levantarse/pisar (carril 0 o 3).
+        const lane = activeTargetNote.lane as number;
+        const lx = laneX(lane) + laneW / 2;
+        const color = PAD_HEX[PAD_COLORS[lane]];
+        ctx.strokeStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 8;
+        ctx.lineWidth = 2.2;
+        ctx.globalAlpha = 0.6 + 0.4 * urgency * pulse;
+        ctx.beginPath();
+        ctx.moveTo(lx - laneW * 0.24, padY - 12);
+        ctx.lineTo(lx, padY - 4);
+        ctx.lineTo(lx + laneW * 0.24, padY - 12);
+        ctx.stroke();
+      } else if (activeTargetNote.kind === 'duck') {
+        // Barra horizontal de techo indicando hasta dónde bajar la cabeza/hombros.
+        const barY = py + ph * 0.34;
+        ctx.strokeStyle = '#ffd23e';
+        ctx.shadowColor = '#ff9f1c';
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.moveTo(px + padMarginX, barY);
+        ctx.lineTo(px + pw - padMarginX, barY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else if (activeTargetNote.kind === 'jump') {
+        // Barra inferior sobre las 4 teclas indicando elevar ambos pies.
+        const barY = padY - 6;
+        ctx.strokeStyle = '#29e6ff';
+        ctx.shadowColor = '#29e6ff';
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(px + padMarginX, barY);
+        ctx.lineTo(px + pw - padMarginX, barY);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // 9. Etiqueta compacta inferior bajo las 4 teclas cuando viene una nota u obstáculo.
+    if (activeTargetNote) {
+      const labels: Record<string, string> = {
+        'wall-left': '◄ MUEVE A CARRILES IZQ',
+        'wall-right': 'MUEVE A CARRILES DER ►',
+        duck: '▼ AGÁCHATE BAJO LA LÍNEA',
+        jump: '▲ SALTA SOBRE LAS TECLAS',
+        hand: activeTargetNote.lane === 1 ? 'PUÑO IZQ (CARRIL 2)' : 'PUÑO DER (CARRIL 3)',
+        foot: activeTargetNote.lane === 0 ? 'PIE IZQ (CARRIL 1)' : 'PIE DER (CARRIL 4)',
+      };
+      const label = labels[activeTargetNote.kind] ?? '';
+      if (label) {
+        const pillY = py + ph - 24;
+        ctx.fillStyle = 'rgba(5, 6, 12, 0.86)';
+        ctx.fillRect(px + 6, pillY, pw - 12, 19);
+        ctx.font = `700 ${Math.max(10, Math.round(pw * 0.068))}px "Segoe UI", sans-serif`;
+        ctx.fillStyle = isObstacle(activeTargetNote.kind)
+          ? '#ffd23e'
+          : PAD_HEX[PAD_COLORS[activeTargetNote.lane as number]];
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, px + pw / 2, pillY + 9.5);
+      }
+    }
+
+    // 10. Marco exterior gris claro/blanco como en el referente.
+    ctx.strokeStyle = 'rgba(225, 225, 234, 0.9)';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(px, py, pw, ph);
+    ctx.restore();
+  }
+
+  /**
+   * Compone en `sctx` la silueta corporal completa a partir de los landmarks
+   * en vivo (o pose neutra si aún no hay detección) en dos pasadas:
+   * - Pasada 1: blanco (#ffffff) con grosor expandido +2.3 px.
+   * - Pasada 2: negro (#040407) con grosor base.
+   * Ancla la línea del suelo a las 4 teclas inferiores (`h * 0.83`) para que los
+   * desplazamientos laterales entre los 4 carriles, pasos, saltos y agachadas
+   * se reflejen en tiempo real sin recentrar artificialmente el cuerpo.
+   */
+  private renderBodySilhouetteTwoPass(
+    sctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    lms: Array<{ x: number; y: number; visibility: number }> | null,
+  ): Record<number, Pt> {
+    let pts: Record<number, Pt>;
+    let scaleUnit: number;
+    const floorTargetY = h * 0.815;
+
+    if (lms && lms.length >= 33) {
+      const ls = lms[LM.leftShoulder];
+      const rs = lms[LM.rightShoulder];
+      const lh = lms[LM.leftHip];
+      const rh = lms[LM.rightHip];
+      const la = lms[LM.leftAnkle];
+      const ra = lms[LM.rightAnkle];
+      const nose = lms[LM.nose];
+
+      const anklesVis = (la.visibility ?? 0) >= 0.3 && (ra.visibility ?? 0) >= 0.3;
+      const obsFloorY = anklesVis
+        ? Math.max(la.y, ra.y)
+        : (lh.y + rh.y) / 2 + Math.abs((lh.y + rh.y) / 2 - (ls.y + rs.y) / 2) * 1.45;
+      const obsTopY = Math.min(nose.y - 0.06, ls.y - 0.12, rs.y - 0.12);
+      const obsSpanY = Math.max(0.38, Math.min(0.92, obsFloorY - obsTopY));
+
+      if (this.silFloorY === 0 || this.silSpanY === 0) {
+        this.silFloorY = obsFloorY;
+        this.silSpanY = obsSpanY;
+      } else {
+        // Actualizar muy suavemente la referencia del suelo para no cancelar saltos ni agachadas.
+        this.silFloorY = this.silFloorY * 0.96 + Math.max(this.silFloorY, obsFloorY) * 0.04;
+        this.silSpanY = this.silSpanY * 0.97 + obsSpanY * 0.03;
+      }
+
+      const scaleY = (h * 0.64) / Math.max(0.38, this.silSpanY);
+      const scaleX = w * 1.35;
+      scaleUnit = Math.max(w * 0.135, Math.hypot(ls.x - rs.x, ls.y - rs.y) * scaleY * 0.82);
+
+      const mapPt = (idx: number): Pt => {
+        const p = lms[idx];
+        return {
+          x: Math.max(w * 0.08, Math.min(w * 0.92, w * 0.5 + (0.5 - p.x) * scaleX)),
+          y: Math.max(h * 0.07, Math.min(h * 0.9, floorTargetY + (p.y - this.silFloorY) * scaleY)),
+        };
+      };
+      pts = {
+        [LM.nose]: mapPt(LM.nose),
+        [LM.leftShoulder]: mapPt(LM.leftShoulder),
+        [LM.rightShoulder]: mapPt(LM.rightShoulder),
+        [LM.leftElbow]: mapPt(LM.leftElbow),
+        [LM.rightElbow]: mapPt(LM.rightElbow),
+        [LM.leftWrist]: mapPt(LM.leftWrist),
+        [LM.rightWrist]: mapPt(LM.rightWrist),
+        [LM.leftHip]: mapPt(LM.leftHip),
+        [LM.rightHip]: mapPt(LM.rightHip),
+        [LM.leftKnee]: mapPt(LM.leftKnee),
+        [LM.rightKnee]: mapPt(LM.rightKnee),
+        [LM.leftAnkle]: mapPt(LM.leftAnkle),
+        [LM.rightAnkle]: mapPt(LM.rightAnkle),
+      };
+    } else {
+      // Pose neutra por defecto apoyada sobre los carriles centrales (1 y 2).
+      scaleUnit = w * 0.21;
+      pts = {
+        [LM.nose]: { x: w * 0.5, y: h * 0.22 },
+        [LM.leftShoulder]: { x: w * 0.37, y: h * 0.31 },
+        [LM.rightShoulder]: { x: w * 0.63, y: h * 0.31 },
+        [LM.leftElbow]: { x: w * 0.31, y: h * 0.43 },
+        [LM.rightElbow]: { x: w * 0.69, y: h * 0.43 },
+        [LM.leftWrist]: { x: w * 0.34, y: h * 0.52 },
+        [LM.rightWrist]: { x: w * 0.66, y: h * 0.52 },
+        [LM.leftHip]: { x: w * 0.42, y: h * 0.51 },
+        [LM.rightHip]: { x: w * 0.58, y: h * 0.51 },
+        [LM.leftKnee]: { x: w * 0.42, y: h * 0.66 },
+        [LM.rightKnee]: { x: w * 0.58, y: h * 0.66 },
+        [LM.leftAnkle]: { x: w * 0.41, y: floorTargetY },
+        [LM.rightAnkle]: { x: w * 0.59, y: floorTargetY },
+      };
+    }
+
+    const paintBody = (padPx: number, color: string, glow = 0) => {
+      sctx.save();
+      sctx.fillStyle = color;
+      sctx.strokeStyle = color;
+      sctx.lineCap = 'round';
+      sctx.lineJoin = 'round';
+      sctx.shadowColor = color;
+      sctx.shadowBlur = glow;
+
+      const ls = pts[LM.leftShoulder];
+      const rs = pts[LM.rightShoulder];
+      const lh = pts[LM.leftHip];
+      const rh = pts[LM.rightHip];
+      const nose = pts[LM.nose];
+      const neck = { x: (ls.x + rs.x) / 2, y: (ls.y + rs.y) / 2 - scaleUnit * 0.08 };
+      const headCenter = {
+        x: nose.x * 0.7 + neck.x * 0.3,
+        y: Math.min(nose.y, neck.y - scaleUnit * 0.42),
+      };
+
+      const seg = (a: Pt, b: Pt, width: number) => {
+        sctx.lineWidth = Math.max(2, width + padPx * 2);
+        sctx.beginPath();
+        sctx.moveTo(a.x, a.y);
+        sctx.lineTo(b.x, b.y);
+        sctx.stroke();
+      };
+
+      // Cuello y cabeza
+      seg(neck, headCenter, scaleUnit * 0.28);
+      sctx.beginPath();
+      sctx.ellipse(
+        headCenter.x,
+        headCenter.y - scaleUnit * 0.05,
+        scaleUnit * 0.27 + padPx,
+        scaleUnit * 0.35 + padPx,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      sctx.fill();
+
+      // Torso anatómico + hombros + pantalón corto (shorts como en la silueta del referente)
+      const shW = Math.hypot(rs.x - ls.x, rs.y - ls.y);
+      seg(ls, rs, scaleUnit * 0.36);
+      seg(lh, rh, scaleUnit * 0.38);
+
+      sctx.lineWidth = Math.max(2, scaleUnit * 0.28 + padPx * 2);
+      sctx.beginPath();
+      sctx.moveTo(ls.x, ls.y);
+      sctx.lineTo(rs.x, rs.y);
+      sctx.lineTo(rh.x, rh.y + scaleUnit * 0.14);
+      sctx.lineTo(lh.x, lh.y + scaleUnit * 0.14);
+      sctx.closePath();
+      sctx.fill();
+      sctx.stroke();
+
+      // Piernas (muslo con volumen de pantalón corto + pantorrilla + pie)
+      for (const [hip, knee, ankle, footSign] of [
+        [lh, pts[LM.leftKnee], pts[LM.leftAnkle], -1],
+        [rh, pts[LM.rightKnee], pts[LM.rightAnkle], 1],
+      ] as const) {
+        const midThigh = {
+          x: hip.x * 0.45 + knee.x * 0.55,
+          y: hip.y * 0.45 + knee.y * 0.55,
+        };
+        seg(hip, midThigh, Math.max(scaleUnit * 0.34, shW * 0.32));
+        seg(midThigh, knee, scaleUnit * 0.24);
+        seg(knee, ankle, scaleUnit * 0.2);
+        const toe = {
+          x: ankle.x + footSign * scaleUnit * 0.14,
+          y: ankle.y + scaleUnit * 0.12,
+        };
+        seg(ankle, toe, scaleUnit * 0.21);
+      }
+
+      // Brazos (hombro -> codo -> muñeca + puño)
+      for (const [sh, elb, wr] of [
+        [ls, pts[LM.leftElbow], pts[LM.leftWrist]],
+        [rs, pts[LM.rightElbow], pts[LM.rightWrist]],
+      ] as const) {
+        seg(sh, elb, scaleUnit * 0.23);
+        seg(elb, wr, scaleUnit * 0.2);
+        sctx.beginPath();
+        sctx.arc(wr.x, wr.y, scaleUnit * 0.13 + padPx, 0, Math.PI * 2);
+        sctx.fill();
+      }
+
+      sctx.restore();
+    };
+
+    // Pasada 1: contorno blanco exterior continuo.
+    paintBody(2.3, '#ffffff', 3);
+    // Pasada 2: relleno negro interior que elimina cualquier línea interna.
+    paintBody(0, '#040407', 0);
+    return pts;
+  }
+
+  private drawRating(game: GameView): void {
+    if (!game.rating || performance.now() > game.ratingUntil) return;
+    // En rachas altas de PERFECT, mostrar AWESOME / UNSTOPPABLE como en STAY ON BEAT #18.
+    let key: string = game.rating;
+    if (game.rating === 'perfect') {
+      if (game.combo >= 24) key = 'unstoppable';
+      else if (game.combo >= 10) key = 'awesome';
+    }
+    const img = this.images.get(`rating-${key}`) ?? this.images.get(`rating-${game.rating}`);
+    if (!img) return;
+    const { ctx, canvas } = this;
+    const w = canvas.width * 0.21;
+    const h = w * (img.height / img.width);
+    ctx.save();
+    // Sello inclinado debajo de la etiqueta COMBO (arriba a la derecha, igual que en el referente).
+    ctx.translate(canvas.width * 0.85, canvas.height * 0.265);
+    ctx.rotate(-0.1);
+    ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    ctx.restore();
+  }
+
+  /**
+   * Contador grande blanco ARRIBA y etiqueta COMBO pequeña DEBAJO, alineados a
+   * la derecha, exactamente como en STAY ON BEAT #18 (audit-t061 / t0221).
+   */
+  private drawCombo(combo: number): void {
+    const { ctx, canvas } = this;
+    const digits = String(combo);
+    const dh = canvas.height * 0.088;
+    const step = dh * 0.64;
+    const rightMargin = 32;
+    let x = canvas.width - rightMargin - digits.length * step;
+    const topY = 58;
+    for (const ch of digits) {
+      const img = this.images.get(`digit-${ch}`);
+      if (img) {
+        const dw = dh * (img.width / img.height);
+        ctx.drawImage(img, x, topY, dw, dh);
+        x += step;
+      }
+    }
+    const label = this.images.get('combo-label');
+    const lh = canvas.height * 0.036;
+    if (label) {
+      const lw = lh * (label.width / label.height);
+      ctx.drawImage(label, canvas.width - rightMargin - lw, topY + dh + 2, lw, lh);
+    }
+  }
+
+  /**
+   * Los 4 receptores 3D al final de la pista: losas trapezoidales con grosor
+   * frontal (bisel 3D) que convergen al punto de fuga. En reposo son gris
+   * pizarra oscuro; al contacto de una nota o golpe del jugador se encienden
+   * en su color neón y parpadean con halo luminoso, como en el referente.
    */
   private drawPads(): void {
     const { ctx } = this;
     const now = performance.now();
-    const vp = this.vanishingPoint();
+    const bevelH = Math.max(8, this.canvas.height * 0.022);
+
     for (let i = 0; i < 4; i++) {
       const r = this.padRect(i);
       const active = (this.padFlash.get(i) ?? 0) > now;
       const color = PAD_HEX[PAD_COLORS[i]];
-      // Borde superior recogido hacia el punto de fuga: sigue la pista.
-      const taper = 0.88;
-      const tx0 = vp.x + (r.x - vp.x) * taper;
-      const tx1 = vp.x + (r.x + r.w - vp.x) * taper;
-      const ty = vp.y + (r.y - vp.y) * taper;
+      const q = this.laneSliceQuad(r, 0.83, 1.0);
+
       ctx.save();
+
+      // Halo sobre la pista cuando el pad está encendido.
+      if (active) {
+        const cx = (q.bl.x + q.br.x) / 2;
+        const cy = (q.tl.y + q.bl.y) / 2;
+        const glowGrad = ctx.createRadialGradient(cx, cy, r.w * 0.1, cx, cy, r.w * 0.95);
+        glowGrad.addColorStop(0, color);
+        glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.save();
+        ctx.globalAlpha = 0.35;
+        ctx.fillStyle = glowGrad;
+        ctx.fillRect(cx - r.w, cy - r.h, r.w * 2, r.h * 2);
+        ctx.restore();
+      }
+
+      // Cara frontal vertical (grosor 3D del pad).
       ctx.beginPath();
-      ctx.moveTo(tx0, ty);
-      ctx.lineTo(tx1, ty);
-      ctx.lineTo(r.x + r.w, r.y + r.h);
-      ctx.lineTo(r.x, r.y + r.h);
+      ctx.moveTo(q.bl.x, q.bl.y);
+      ctx.lineTo(q.br.x, q.br.y);
+      ctx.lineTo(q.br.x, q.br.y + bevelH);
+      ctx.lineTo(q.bl.x, q.bl.y + bevelH);
+      ctx.closePath();
+      ctx.fillStyle = active ? color : '#14151d';
+      ctx.globalAlpha = active ? 0.55 : 0.95;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = active ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.14)';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Cara superior en perspectiva del pad.
+      ctx.beginPath();
+      ctx.moveTo(q.tl.x, q.tl.y);
+      ctx.lineTo(q.tr.x, q.tr.y);
+      ctx.lineTo(q.br.x, q.br.y);
+      ctx.lineTo(q.bl.x, q.bl.y);
       ctx.closePath();
       if (active) {
-        // Parpadeo: la luz pulsa mientras la pieza está sobre la línea.
-        const blink = 0.6 + 0.25 * Math.sin(now / 55);
+        const blink = 0.72 + 0.24 * Math.sin(now / 45);
         ctx.shadowColor = color;
-        ctx.shadowBlur = 26;
+        ctx.shadowBlur = 28;
         ctx.fillStyle = color;
         ctx.globalAlpha = blink;
         ctx.fill();
         ctx.globalAlpha = 1;
-        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+        ctx.lineWidth = 2;
       } else {
-        ctx.fillStyle = 'rgba(14,14,24,0.55)';
+        const idleGrad = ctx.createLinearGradient(0, q.tl.y, 0, q.bl.y);
+        idleGrad.addColorStop(0, '#272936');
+        idleGrad.addColorStop(1, '#1c1e28');
+        ctx.fillStyle = idleGrad;
         ctx.fill();
-        ctx.strokeStyle = 'rgba(232,232,240,0.15)';
+        ctx.strokeStyle = 'rgba(232,232,240,0.24)';
+        ctx.lineWidth = 1.5;
       }
-      ctx.lineWidth = 1.5;
       ctx.stroke();
       ctx.restore();
     }
@@ -891,73 +1829,79 @@ export class Scene {
     for (const [k, exp] of this.padFlash) if (exp <= now) this.padFlash.delete(k);
   }
 
-  /** Sellos de acierto: la nota queda sobre el pad y se desvanece en ~1.5 s. */
+  /** Sellos de acierto breves para obstáculos esquivados (sin congelar notas sobre los pads). */
   private drawStamps(): void {
     const { ctx } = this;
     const now = performance.now();
-    const LIFE = 1500;
+    const LIFE = 280;
     this.stamps = this.stamps.filter((s) => now - s.start < LIFE);
     for (const s of this.stamps) {
+      if (!isObstacle(s.kind)) continue;
       const t = (now - s.start) / LIFE;
       const r = this.padRect(s.lane);
+      const alpha = (1 - t) * 0.7;
       ctx.save();
-      ctx.globalAlpha = (1 - t) * 0.85;
-      if (isObstacle(s.kind)) {
-        // ✓ del color del carril sobre los pads del lado esquivado
-        ctx.fillStyle = PAD_HEX[s.color];
-        ctx.font = `700 ${r.h * 0.9}px "Segoe UI", sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('✓', r.x + r.w / 2, r.y + r.h / 2);
-      } else {
-        const img = this.images.get(`note-${s.lane}`);
-        if (img) {
-          if (s.kind === 'foot') {
-            // placa en perspectiva sobre el pad, igual que la nota al llegar
-            this.drawImageQuad(img, this.floorTileQuad(r, 1));
-          } else {
-            // El puño se estampa a la altura a la que llega la nota, no en el pad.
-            const hs = r.h * 1.4;
-            ctx.drawImage(img, r.x + r.w / 2 - hs / 2, this.handNoteY() - hs / 2, hs, hs);
-          }
-        } else {
-          ctx.fillStyle = PAD_HEX[s.color];
-          ctx.fillRect(r.x, r.y, r.w, r.h);
-        }
-      }
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = PAD_HEX[s.color];
+      ctx.font = `700 ${r.h * 0.75}px "Segoe UI", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('✓', r.x + r.w / 2, r.y + r.h / 2);
       ctx.restore();
     }
   }
 
+  /** Anillos elípticos de onda expansiva sobre la pista (como en t0221 / audit-t0660). */
   private drawRings(): void {
     const { ctx } = this;
     const now = performance.now();
-    const LIFE = 450;
+    const LIFE = 480;
     this.rings = this.rings.filter((r) => now - r.start < LIFE);
     for (const r of this.rings) {
       const t = (now - r.start) / LIFE;
-      const size = 60 + t * 200;
-      const img = this.images.get(`ring-${r.color}`);
+      const rx = 45 + t * 185;
+      const ry = rx * 0.42;
+      const hex = PAD_HEX[r.color];
       ctx.save();
-      ctx.globalAlpha = 1 - t;
-      if (img) ctx.drawImage(img, r.x - size / 2, r.y - size / 2, size, size);
+      ctx.globalAlpha = (1 - t) * 0.85;
+      ctx.strokeStyle = hex;
+      ctx.shadowColor = hex;
+      ctx.shadowBlur = 14;
+      ctx.lineWidth = Math.max(2, 7 * (1 - t));
+      ctx.beginPath();
+      ctx.ellipse(r.x, r.y, rx, ry, 0, 0, Math.PI * 2);
+      ctx.stroke();
       ctx.restore();
     }
   }
 
-  /** Fragmentos de color que estallan y suben sobre el pad al acertar. */
+  /** Fragmentos cúbicos 3D de color que estallan y suben sobre el pad al acertar (como en t0221 / audit-t0404). */
   private drawFrags(): void {
     const { ctx } = this;
     const now = performance.now();
-    const LIFE = 550;
+    const LIFE = 580;
     this.frags = this.frags.filter((f) => now - f.start < LIFE);
     for (const f of this.frags) {
       const t = (now - f.start) / LIFE;
-      const size = 40 + t * 120;
-      const img = this.images.get(`frags-${f.color}`);
+      const hex = PAD_HEX[f.color];
       ctx.save();
-      ctx.globalAlpha = (1 - t) * 0.9;
-      if (img) ctx.drawImage(img, f.x - size / 2, f.y - size / 2 - t * 70, size, size);
+      ctx.globalAlpha = (1 - t) * 0.95;
+      ctx.fillStyle = hex;
+      ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+      ctx.lineWidth = 1;
+      ctx.shadowColor = hex;
+      ctx.shadowBlur = 8;
+      // 8 cubos proyectados alrededor del impacto.
+      for (let k = 0; k < 8; k++) {
+        const ang = (k / 8) * Math.PI * 2 + 0.35;
+        const spread = (18 + (k % 3) * 14) * (0.25 + t * 1.35);
+        const lift = (45 + (k % 4) * 24) * t - 28 * t * t;
+        const cx = f.x + Math.cos(ang) * spread;
+        const cy = f.y - lift + Math.sin(ang) * spread * 0.35;
+        const sz = Math.max(4, (13 - (k % 3) * 2) * (1 - t * 0.45));
+        ctx.fillRect(cx - sz / 2, cy - sz / 2, sz, sz);
+        ctx.strokeRect(cx - sz / 2, cy - sz / 2, sz, sz);
+      }
       ctx.restore();
     }
   }

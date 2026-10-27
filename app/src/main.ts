@@ -5,29 +5,72 @@ import { HandRaiseDetector, FootLiftDetector, JumpDetector, PunchDetector, type 
 import { computeBodyState, type BodyState } from './body/state';
 import { Scene, PAD_COLORS, type GameView, type ResultsView } from './render/scene';
 import { SongClock } from './rhythm/clock';
-import { generateBeatmap, isObstacle, laneFor, type Note } from './rhythm/beatmap';
+import {
+  generateBeatmap,
+  generateCustomAudioBeatmap,
+  DIFFICULTY_TRAVEL_MS,
+  isObstacle,
+  laneFor,
+  SONGS,
+  type Difficulty,
+  type Note,
+} from './rhythm/beatmap';
 import { rate, RATING_LABEL, WINDOWS, type Rating } from './rhythm/judgement';
 import type { Landmark } from './types';
 
 type AppState = 'idle' | 'starting' | 'live' | 'calibrating' | 'ready' | 'playing' | 'error';
 
-const TRAVEL_MS = 2000;
-const BPM = 120;
+let currentTravelMs = DIFFICULTY_TRAVEL_MS.intermedio;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const canvas = $<HTMLCanvasElement>('scene');
 const bigCard = $<HTMLDivElement>('big-card');
 const startCard = $('start-card');
+const pauseCard = $('pause-card');
 const btnHero = $<HTMLButtonElement>('btn-hero');
 const heroHint = $('hero-hint');
 const deviceSelect = $<HTMLSelectElement>('device-select');
 const btnStart = $<HTMLButtonElement>('btn-start');
 const btnCalibrate = $<HTMLButtonElement>('btn-calibrate');
 const btnPlay = $<HTMLButtonElement>('btn-play');
+const playControls = $('play-controls');
+const btnPause = $<HTMLButtonElement>('btn-pause');
+const btnRestart = $<HTMLButtonElement>('btn-restart');
+const btnStop = $<HTMLButtonElement>('btn-stop');
+const btnResume = $<HTMLButtonElement>('btn-resume');
+const btnPauseRestart = $<HTMLButtonElement>('btn-pause-restart');
+const btnPauseQuit = $<HTMLButtonElement>('btn-pause-quit');
+const songSelect = $<HTMLSelectElement>('song-select');
+const btnImportSong = $<HTMLButtonElement>('btn-import-song');
+const songFileInput = $<HTMLInputElement>('song-file-input');
+const difficultySelect = $<HTMLSelectElement>('difficulty-select');
 const sceneSelect = $<HTMLSelectElement>('scene-select');
 const lengthSelect = $<HTMLSelectElement>('length-select');
 const btnPanelToggle = $<HTMLButtonElement>('btn-panel-toggle');
+const btnOpenSettings = $<HTMLButtonElement>('btn-open-settings');
+const btnLobbySettings = $<HTMLButtonElement>('btn-lobby-settings');
+const btnOpenLibrary = $<HTMLButtonElement>('btn-open-library');
+const btnNavSong = $<HTMLButtonElement>('btn-nav-song');
+const btnLobbyLibrary = $<HTMLButtonElement>('btn-lobby-library');
+const btnOpenLibraryPlay = $<HTMLButtonElement>('btn-open-library-play');
+const btnPauseLibrary = $<HTMLButtonElement>('btn-pause-library');
+const btnCloseLibrary = $<HTMLButtonElement>('btn-close-library');
+const btnConfirmLibrary = $<HTMLButtonElement>('btn-confirm-library');
+const btnModalImport = $<HTMLButtonElement>('btn-modal-import');
+const btnLobbyImport = $<HTMLButtonElement>('btn-lobby-import');
+const libraryModal = $('library-modal');
+const songGrid = $('song-grid');
+const libraryTabs = $('library-tabs');
+const songSearch = $<HTMLInputElement>('song-search');
+const navSongTitle = $('nav-song-title');
+const navSongMeta = $('nav-song-meta');
+const lobbySongName = $('lobby-song-name');
+const lobbySongSub = $('lobby-song-sub');
+const lobbyDiffGroup = $('lobby-diff-group');
+const modalDiffGroup = $('modal-diff-group');
+const lobbySceneGroup = $('lobby-scene-group');
+const lobbyLenGroup = $('lobby-len-group');
 const stageControls = document.querySelector<HTMLElement>('.stage-controls')!;
 const chipPermission = $('chip-permission');
 const chipPose = $('chip-pose');
@@ -71,10 +114,12 @@ let maxCombo = 0;
 let counts: Record<Rating, number> = { perfect: 0, great: 0, nice: 0, miss: 0 };
 let lastRating: Rating | null = null;
 let ratingUntil = 0;
-let bodyState: BodyState = { lean: null, ducking: false };
+let bodyState: BodyState = { lean: null, ducking: false, jumping: false };
 let bgVideo: HTMLVideoElement | null = null;
 let resultsView: ResultsView | null = null;
 let lastComboMilestone = 0;
+let lastCountdownNum = 0;
+let lastHandHitAt: Record<'left' | 'right', number> = { left: 0, right: 0 };
 let sessionDurationMs = 0;
 let lastError: string | null = null;
 
@@ -89,6 +134,10 @@ function refreshHero(): void {
   );
   // La barra de controles se oculta solo en juego para no tapar la guía de obstáculos.
   stageControls.classList.toggle('hidden', state === 'playing');
+  playControls.classList.toggle('hidden', state !== 'playing');
+  if (state !== 'playing') {
+    pauseCard.classList.add('hidden');
+  }
   btnHero.disabled = state === 'starting' || state === 'calibrating';
   const cfg: Record<AppState, [string, string]> = {
     idle: ['Iniciar cámara', 'Necesitas una webcam · todo se procesa en tu navegador'],
@@ -125,6 +174,7 @@ const sounds = {
   foot: new Audio(`${SFX}/hit-foot.wav`),
   miss: new Audio(`${SFX}/miss.wav`),
   comboUp: new Audio(`${SFX}/combo-up.wav`),
+  countdown: new Audio(`${SFX}/countdown.wav`),
   complete: new Audio(`${SFX}/session-complete.wav`),
 };
 for (const s of Object.values(sounds)) s.volume = 0.6;
@@ -274,7 +324,9 @@ function finishCalibration(m: BodyMetrics, coverage: number): void {
   btnPlay.disabled = false;
   overlayText = 'Mueve manos o pies para probar · o pulsa JUGAR';
   setBigCard('GO');
-  setTimeout(() => setBigCard(null), 900);
+  setTimeout(() => {
+    if (state !== 'playing' && state !== 'calibrating') setBigCard(null);
+  }, 900);
 }
 
 // --- Bucle principal -------------------------------------------------------
@@ -319,6 +371,11 @@ function registerHit(note: Note | null, rating: Rating, ev?: GestureEvent): void
 }
 
 function handleGesture(ev: GestureEvent): void {
+  // Evitar doble disparo cuando HandRaiseDetector y PunchDetector coinciden en el mismo golpe.
+  if (ev.kind === 'hand-raised' || ev.kind === 'punch') {
+    if (ev.timestamp - lastHandHitAt[ev.hand] < 180) return;
+    lastHandHitAt[ev.hand] = ev.timestamp;
+  }
   const lane = laneOf(ev);
   scene.triggerHit(
     lane >= 0
@@ -354,12 +411,25 @@ function handleGesture(ev: GestureEvent): void {
 
 async function startGame(): Promise<void> {
   if (state !== 'ready' || !metrics) return;
-  clock = new SongClock(`${SFX}/cardio-bed-120bpm.wav`);
-  const beats = Number(lengthSelect.value) || 32;
-  notes = generateBeatmap(BPM, beats, { pairs: beats > 32 });
+  stopPreview();
+  libraryModal.classList.add('hidden');
+  const songId = songSelect.value in SONGS ? songSelect.value : 'edm-detection-mode';
+  const song = SONGS[songId];
+  const difficulty = (difficultySelect.value as Difficulty) in DIFFICULTY_TRAVEL_MS
+    ? (difficultySelect.value as Difficulty)
+    : 'intermedio';
+  currentTravelMs = DIFFICULTY_TRAVEL_MS[difficulty];
+  clock = new SongClock(song.customUrl ?? `${SFX}/${song.file}`);
+  const baseBeats = Number(lengthSelect.value) || 32;
+  // Escalar el número de beats proporcionalmente al BPM para mantener la duración elegida.
+  const beats = Math.round((baseBeats * song.bpm) / 120);
+  notes = song.audioBuffer
+    ? generateCustomAudioBeatmap(song.audioBuffer, song.bpm, beats, difficulty)
+    : generateBeatmap(song.bpm, beats, { songId, difficulty });
   combo = 0;
   maxCombo = 0;
   lastComboMilestone = 0;
+  lastCountdownNum = 0;
   counts = { perfect: 0, great: 0, nice: 0, miss: 0 };
   lastRating = null;
   resultsView = null;
@@ -373,13 +443,70 @@ async function startGame(): Promise<void> {
   btnPlay.disabled = true;
   btnCalibrate.disabled = true;
   state = 'playing';
+  pauseCard.classList.add('hidden');
+  btnPause.textContent = '⏸ Pausar';
   refreshHero();
   overlayText = null;
   const bg = getBgVideo();
   void bg.play().catch(() => {});
   scene.setBackground(bg);
-  log(`Jugando: ${notes.length} notas a ${BPM} BPM`, 'hit');
+  log(
+    `Jugando [${difficulty.toUpperCase()}]: ${song.title} · ${notes.length} notas a ${song.bpm} BPM (Espacio / P / Esc para pausar)`,
+    'hit',
+  );
   await clock.start();
+}
+
+function setPaused(wantPaused: boolean): void {
+  if (state !== 'playing' || !clock) return;
+  if (wantPaused && !clock.isPaused) {
+    clock.pause();
+    bgVideo?.pause();
+    setBigCard(null);
+    pauseCard.classList.remove('hidden');
+    btnPause.textContent = '▶ Reanudar';
+    log('Juego en pausa');
+  } else if (!wantPaused && clock.isPaused) {
+    pauseCard.classList.add('hidden');
+    btnPause.textContent = '⏸ Pausar';
+    detector.reset();
+    footDetector.reset();
+    jumpDetector.reset();
+    punchDetector.reset();
+    void clock.resume().then(() => void bgVideo?.play().catch(() => {}));
+    log('Juego reanudado');
+  }
+}
+
+function togglePause(): void {
+  if (state !== 'playing' || !clock) return;
+  setPaused(!clock.isPaused);
+}
+
+function quitGame(): void {
+  if (state !== 'playing') return;
+  clock?.stop();
+  clock = null;
+  bgVideo?.pause();
+  scene.setBackground(null);
+  setBigCard(null);
+  pauseCard.classList.add('hidden');
+  state = 'ready';
+  btnPlay.disabled = false;
+  btnCalibrate.disabled = false;
+  refreshHero();
+  overlayText = 'Sesión cancelada · pulsa JUGAR cuando quieras';
+  log('Sesión detenida por el usuario');
+}
+
+function restartGame(): void {
+  if (state !== 'playing') return;
+  clock?.stop();
+  clock = null;
+  setBigCard(null);
+  pauseCard.classList.add('hidden');
+  state = 'ready';
+  void startGame();
 }
 
 function endGame(): void {
@@ -440,58 +567,71 @@ async function tick(): Promise<void> {
           if (done) finishCalibration(done, calibrator.poseCoverage);
         }
       } else if ((state === 'ready' || state === 'playing') && metrics) {
-        bodyState = computeBodyState(frame.landmarks, metrics);
-        setChip(
-          chipLean,
-          bodyState.lean ? `Esquiva: ${bodyState.lean === 'left' ? 'izq' : 'der'}` : 'Esquiva: —',
-          bodyState.lean ? 'ok' : '',
-        );
-        setChip(chipDuck, bodyState.ducking ? 'Agachado: sí' : 'Agachado: —', bodyState.ducking ? 'ok' : '');
-        for (const ev of [
-          ...detector.update(frame.landmarks, metrics),
-          ...footDetector.update(frame.landmarks, metrics),
-          ...jumpDetector.update(frame.landmarks, metrics),
-          ...punchDetector.update(frame.landmarks, metrics),
-        ]) {
-          handleGesture(ev);
-        }
-        if (state === 'playing' && clock) {
-          const st = clock.songTime();
-          if (st < 0) {
-            setBigCard(`${Math.max(1, Math.ceil(-st / 500))}`);
-          } else if (st < 600) {
-            setBigCard('GO');
-          } else {
-            setBigCard(null);
+        const isPaused = state === 'playing' && Boolean(clock?.isPaused);
+        if (!isPaused) {
+          bodyState = computeBodyState(frame.landmarks, metrics);
+          setChip(
+            chipLean,
+            bodyState.lean ? `Esquiva: ${bodyState.lean === 'left' ? 'izq' : 'der'}` : 'Esquiva: —',
+            bodyState.lean ? 'ok' : '',
+          );
+          setChip(chipDuck, bodyState.ducking ? 'Agachado: sí' : 'Agachado: —', bodyState.ducking ? 'ok' : '');
+          for (const ev of [
+            ...detector.update(frame.landmarks, metrics),
+            ...footDetector.update(frame.landmarks, metrics),
+            ...jumpDetector.update(frame.landmarks, metrics),
+            ...punchDetector.update(frame.landmarks, metrics),
+          ]) {
+            handleGesture(ev);
           }
-          for (const n of notes) {
-            if (n.state !== 'pending') continue;
-            const d = st - n.time;
-            if (d > WINDOWS.nice) {
-              n.state = 'missed';
-              combo = 0;
-              counts.miss++;
-              lastRating = 'miss';
-              ratingUntil = performance.now() + 700;
-              mCombo.textContent = '0';
-              mLast.textContent = 'MISS';
-              play('miss');
-              continue;
-            }
-            // Obstáculos de estado sostenido: esquiva y agacharse.
-            const ok =
-              (n.kind === 'wall-left' && bodyState.lean === 'left') ||
-              (n.kind === 'wall-right' && bodyState.lean === 'right') ||
-              (n.kind === 'duck' && bodyState.ducking);
-            if (ok && Math.abs(d) <= WINDOWS.nice) {
-              registerHit(n, rate(d) ?? 'nice');
-            }
-          }
-          const last = notes[notes.length - 1];
-          if (last && st > last.time + 1500) endGame();
         }
       }
     }
+  }
+
+  if (state === 'playing' && clock && !clock.isPaused) {
+    const st = clock.songTime();
+    if (st < 0) {
+      const num = Math.max(1, Math.ceil(-st / 500));
+      if (num !== lastCountdownNum) {
+        lastCountdownNum = num;
+        play('countdown');
+      }
+      setBigCard(`${num}`);
+    } else if (st < 600) {
+      if (lastCountdownNum !== 0) {
+        lastCountdownNum = 0;
+      }
+      setBigCard('GO');
+    } else {
+      setBigCard(null);
+    }
+    for (const n of notes) {
+      if (n.state !== 'pending') continue;
+      const d = st - n.time;
+      if (d > WINDOWS.nice) {
+        n.state = 'missed';
+        combo = 0;
+        counts.miss++;
+        lastRating = 'miss';
+        ratingUntil = performance.now() + 700;
+        mCombo.textContent = '0';
+        mLast.textContent = 'MISS';
+        play('miss');
+        continue;
+      }
+      // Obstáculos de estado sostenido: esquiva, agacharse y salto.
+      const ok =
+        (n.kind === 'wall-left' && bodyState.lean === 'left') ||
+        (n.kind === 'wall-right' && bodyState.lean === 'right') ||
+        (n.kind === 'duck' && bodyState.ducking) ||
+        (n.kind === 'jump' && bodyState.jumping);
+      if (ok && Math.abs(d) <= WINDOWS.nice) {
+        registerHit(n, rate(d) ?? 'nice');
+      }
+    }
+    const last = notes[notes.length - 1];
+    if (last && st > last.time + 1500) endGame();
   }
 
   const gameView: GameView | undefined =
@@ -499,7 +639,7 @@ async function tick(): Promise<void> {
       ? {
           notes,
           songTime: clock.songTime(),
-          travelMs: TRAVEL_MS,
+          travelMs: currentTravelMs,
           rating: lastRating,
           ratingUntil,
           combo,
@@ -539,24 +679,364 @@ btnHero.addEventListener('click', () => {
 btnStart.addEventListener('click', () => void boot());
 btnCalibrate.addEventListener('click', startCalibration);
 btnPlay.addEventListener('click', () => void startGame());
-btnPanelToggle.addEventListener('click', () => {
+btnPause.addEventListener('click', togglePause);
+btnRestart.addEventListener('click', restartGame);
+btnStop.addEventListener('click', quitGame);
+btnResume.addEventListener('click', () => setPaused(false));
+/**
+ * Decodifica el archivo de audio importado y detecta automáticamente su BPM
+ * (entre 114 y 160 BPM) analizando la autocorrelación de su envolvente de
+ * ataques (onsets), conservando el `AudioBuffer` para extraer los golpes reales
+ * de bombo/bajo (pies), caja/guitarra/synth (manos) y drops (obstáculos).
+ */
+async function analyzeImportedAudioFile(file: File): Promise<{ bpm: number; audioBuffer?: AudioBuffer }> {
+  try {
+    const buf = await file.arrayBuffer();
+    const ctx = new AudioContext();
+    const audioBuf = await ctx.decodeAudioData(buf);
+    await ctx.close();
+    const sr = audioBuf.sampleRate;
+    const ch = audioBuf.getChannelData(0);
+    const maxSamples = Math.min(ch.length, sr * 45);
+    const hop = Math.max(1, Math.round(sr * 0.01)); // ventanas de 10 ms (100 Hz)
+    const nFrames = Math.floor(maxSamples / hop);
+    if (nFrames < 400) return { bpm: 128, audioBuffer: audioBuf };
+
+    const rms = new Float32Array(nFrames);
+    for (let i = 0; i < nFrames; i++) {
+      let sum = 0;
+      const base = i * hop;
+      for (let j = 0; j < hop; j++) {
+        const v = ch[base + j];
+        sum += v * v;
+      }
+      rms[i] = Math.sqrt(sum / hop);
+    }
+    const onset = new Float32Array(nFrames);
+    for (let i = 1; i < nFrames; i++) {
+      onset[i] = Math.max(0, rms[i] - rms[i - 1]);
+    }
+
+    let bestBpm = 128;
+    let bestScore = -1;
+    for (let bpm = 114; bpm <= 160; bpm++) {
+      const lag = Math.round((60 / bpm) * 100);
+      let score = 0;
+      for (let i = lag; i < nFrames; i++) {
+        score += onset[i] * onset[i - lag];
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        bestBpm = bpm;
+      }
+    }
+    return { bpm: bestBpm, audioBuffer: audioBuf };
+  } catch {
+    return { bpm: 128 };
+  }
+}
+
+// --- Sincronización de UI Arcade (Lobby, Barra superior, Modal de Biblioteca y Drawer) ---
+
+let libraryFilter: 'all' | 'electro' | 'rock' | 'custom' = 'all';
+let previewAudio: HTMLAudioElement | null = null;
+let previewSongId: string | null = null;
+
+const DIFF_LABELS: Record<Difficulty, string> = {
+  basico: 'Básico',
+  intermedio: 'Intermedio',
+  avanzado: 'Avanzado',
+};
+
+function stopPreview(): void {
+  if (previewAudio) {
+    previewAudio.pause();
+    previewAudio = null;
+  }
+  previewSongId = null;
+}
+
+function togglePreview(id: string): void {
+  if (previewSongId === id && previewAudio && !previewAudio.paused) {
+    stopPreview();
+    renderSongGrid();
+    return;
+  }
+  stopPreview();
+  const s = SONGS[id];
+  if (!s) return;
+  previewAudio = new Audio(s.customUrl ?? `${SFX}/${s.file}`);
+  previewAudio.volume = 0.65;
+  previewAudio.currentTime = s.customUrl ? 15 : 2;
+  previewSongId = id;
+  previewAudio.addEventListener('ended', () => {
+    stopPreview();
+    renderSongGrid();
+  });
+  void previewAudio.play().catch(() => {});
+  renderSongGrid();
+}
+
+function syncUIState(): void {
+  const songId = songSelect.value in SONGS ? songSelect.value : 'edm-detection-mode';
+  const song = SONGS[songId];
+  const diff = (difficultySelect.value as Difficulty) in DIFF_LABELS
+    ? (difficultySelect.value as Difficulty)
+    : 'intermedio';
+  const isCustom = songId.startsWith('custom-');
+  const isRock = song.style === 'rock' || (song.style === 'hard-rock' && songId !== 'neon-laser-horizon');
+  const catLabel = isCustom ? '★ Mi MP3 Analizado' : isRock ? '🎸 Rock / Guitar Hero' : '⚡ Electro / Beat Fever';
+
+  navSongTitle.textContent = song.title.split('—')[0].trim();
+  navSongMeta.textContent = `${song.bpm} BPM · ${DIFF_LABELS[diff]}`;
+  lobbySongName.textContent = song.title;
+  lobbySongSub.textContent = `${catLabel} · ${song.bpm} BPM · Nivel ${DIFF_LABELS[diff]}`;
+
+  for (const grp of [lobbyDiffGroup, modalDiffGroup]) {
+    for (const btn of Array.from(grp.querySelectorAll<HTMLButtonElement>('.seg-btn'))) {
+      btn.classList.toggle('active', btn.dataset.diff === diff);
+    }
+  }
+  for (const btn of Array.from(lobbySceneGroup.querySelectorAll<HTMLButtonElement>('.seg-btn'))) {
+    btn.classList.toggle('active', btn.dataset.scene === sceneSelect.value);
+  }
+  for (const btn of Array.from(lobbyLenGroup.querySelectorAll<HTMLButtonElement>('.seg-btn'))) {
+    btn.classList.toggle('active', btn.dataset.len === lengthSelect.value);
+  }
+}
+
+function renderSongGrid(): void {
+  const q = songSearch.value.trim().toLowerCase();
+  const currentId = songSelect.value;
+  songGrid.innerHTML = '';
+
+  const entries = Object.values(SONGS).filter((s) => {
+    const isCustom = s.id.startsWith('custom-');
+    const isRock = !isCustom && (s.style === 'rock' || (s.style === 'hard-rock' && s.id !== 'neon-laser-horizon'));
+    if (libraryFilter === 'custom' && !isCustom) return false;
+    if (libraryFilter === 'rock' && !isRock) return false;
+    if (libraryFilter === 'electro' && (isRock || isCustom)) return false;
+    if (q && !`${s.title} ${s.bpm} ${s.style}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if (entries.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.gridColumn = '1 / -1';
+    empty.style.padding = '28px';
+    empty.style.textAlign = 'center';
+    empty.style.color = 'var(--dim)';
+    empty.textContent =
+      libraryFilter === 'custom'
+        ? 'Aún no has importado canciones propias. Pulsa "📂 + Importar MP3 / WAV desde mi PC" arriba.'
+        : 'No se encontraron canciones con ese filtro.';
+    songGrid.append(empty);
+    return;
+  }
+
+  for (const s of entries) {
+    const isCustom = s.id.startsWith('custom-');
+    const isRock = !isCustom && (s.style === 'rock' || (s.style === 'hard-rock' && s.id !== 'neon-laser-horizon'));
+    const card = document.createElement('div');
+    card.className = `song-card ${s.id === currentId ? 'active' : ''} ${isCustom ? 'custom' : isRock ? 'rock' : 'electro'}`.trim();
+
+    const left = document.createElement('div');
+    left.className = 'song-card-left';
+    const badge = document.createElement('div');
+    badge.className = 'song-card-badge';
+    badge.textContent = isCustom ? '★' : isRock ? '🎸' : '⚡';
+
+    const text = document.createElement('div');
+    text.className = 'song-card-text';
+    const titleEl = document.createElement('div');
+    titleEl.className = 'song-card-title';
+    titleEl.textContent = s.title;
+    const subEl = document.createElement('div');
+    subEl.className = 'song-card-sub';
+    subEl.textContent = isCustom
+      ? 'Pista auto-analizada (graves/agudos)'
+      : isRock
+        ? 'Rock / Guitar Hero · Estudio CC-BY'
+        : 'Electro / Beat Fever · Estudio CC-BY';
+    text.append(titleEl, subEl);
+    left.append(badge, text);
+
+    const right = document.createElement('div');
+    right.className = 'song-card-right';
+    const bpmTag = document.createElement('span');
+    bpmTag.className = 'bpm-tag';
+    bpmTag.textContent = `${s.bpm} BPM`;
+
+    const prevBtn = document.createElement('button');
+    prevBtn.type = 'button';
+    const isPrev = previewSongId === s.id && previewAudio && !previewAudio.paused;
+    prevBtn.className = `btn-preview ${isPrev ? 'playing' : ''}`.trim();
+    prevBtn.textContent = isPrev ? '⏹' : '🔊';
+    prevBtn.title = isPrev ? 'Detener previa' : 'Escuchar previa';
+    prevBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      togglePreview(s.id);
+    });
+
+    right.append(bpmTag, prevBtn);
+    card.append(left, right);
+
+    card.addEventListener('click', () => {
+      songSelect.value = s.id;
+      syncUIState();
+      renderSongGrid();
+      if (state === 'playing') restartGame();
+    });
+
+    songGrid.append(card);
+  }
+}
+
+function openLibraryModal(): void {
+  if (state === 'playing' && clock && !clock.isPaused) {
+    setPaused(true);
+  }
+  syncUIState();
+  renderSongGrid();
+  libraryModal.classList.remove('hidden');
+}
+
+function closeLibraryModal(): void {
+  stopPreview();
+  libraryModal.classList.add('hidden');
+}
+
+function toggleSettingsDrawer(forceOpen?: boolean): void {
   const main = document.querySelector('main');
   if (!main) return;
-  const collapsed = main.classList.toggle('panel-collapsed');
-  btnPanelToggle.textContent = collapsed ? '«' : '»';
-  btnPanelToggle.title = collapsed ? 'Expandir panel' : 'Contraer panel';
-  localStorage.setItem('panel-collapsed', collapsed ? '1' : '0');
+  const wantCollapsed = forceOpen !== undefined ? !forceOpen : !main.classList.contains('panel-collapsed');
+  main.classList.toggle('panel-collapsed', wantCollapsed);
+}
+
+for (const b of [btnOpenLibrary, btnNavSong, btnLobbyLibrary, btnOpenLibraryPlay, btnPauseLibrary]) {
+  b.addEventListener('click', openLibraryModal);
+}
+btnCloseLibrary.addEventListener('click', closeLibraryModal);
+btnConfirmLibrary.addEventListener('click', closeLibraryModal);
+libraryModal.addEventListener('click', (ev) => {
+  if (ev.target === libraryModal) closeLibraryModal();
 });
-if (localStorage.getItem('panel-collapsed') === '1') btnPanelToggle.click();
+
+for (const tabBtn of Array.from(libraryTabs.querySelectorAll<HTMLButtonElement>('.tab-btn'))) {
+  tabBtn.addEventListener('click', () => {
+    for (const b of Array.from(libraryTabs.querySelectorAll('.tab-btn'))) b.classList.remove('active');
+    tabBtn.classList.add('active');
+    libraryFilter = (tabBtn.dataset.filter as typeof libraryFilter) || 'all';
+    renderSongGrid();
+  });
+}
+songSearch.addEventListener('input', renderSongGrid);
+
+for (const grp of [lobbyDiffGroup, modalDiffGroup]) {
+  for (const btn of Array.from(grp.querySelectorAll<HTMLButtonElement>('.seg-btn'))) {
+    btn.addEventListener('click', () => {
+      if (!btn.dataset.diff) return;
+      difficultySelect.value = btn.dataset.diff;
+      syncUIState();
+      if (state === 'playing') restartGame();
+    });
+  }
+}
+for (const btn of Array.from(lobbySceneGroup.querySelectorAll<HTMLButtonElement>('.seg-btn'))) {
+  btn.addEventListener('click', () => {
+    if (!btn.dataset.scene) return;
+    sceneSelect.value = btn.dataset.scene;
+    syncUIState();
+    sceneSelect.dispatchEvent(new Event('change'));
+  });
+}
+for (const btn of Array.from(lobbyLenGroup.querySelectorAll<HTMLButtonElement>('.seg-btn'))) {
+  btn.addEventListener('click', () => {
+    if (!btn.dataset.len) return;
+    lengthSelect.value = btn.dataset.len;
+    syncUIState();
+  });
+}
+
+for (const b of [btnImportSong, btnModalImport, btnLobbyImport]) {
+  b.addEventListener('click', () => songFileInput.click());
+}
+songFileInput.addEventListener('change', async () => {
+  const files = songFileInput.files;
+  if (!files || files.length === 0) return;
+  let customGroup = songSelect.querySelector<HTMLOptGroupElement>('optgroup[data-custom="1"]');
+  if (!customGroup) {
+    customGroup = document.createElement('optgroup');
+    customGroup.label = '🎵 Mis Canciones Importadas (Analizadas)';
+    customGroup.dataset.custom = '1';
+    songSelect.prepend(customGroup);
+  }
+  let lastId = '';
+  for (const file of Array.from(files)) {
+    const cleanName = file.name.replace(/\.[^.]+$/, '');
+    log(`Analizando espectro (graves/agudos) y BPM de "${cleanName}"…`);
+    const { bpm, audioBuffer } = await analyzeImportedAudioFile(file);
+    const id = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const url = URL.createObjectURL(file);
+    SONGS[id] = {
+      id,
+      title: `${cleanName}`,
+      style: bpm >= 140 ? 'hard-rock' : 'edm',
+      file: file.name,
+      customUrl: url,
+      audioBuffer,
+      bpm,
+    };
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = `★ ${cleanName} (${bpm} BPM · Pista Auto-Analizada)`;
+    customGroup.append(opt);
+    lastId = id;
+    log(`Pista creada para "${cleanName}" → ${bpm} BPM (graves=pies, medios/agudos=manos)`, 'hit');
+  }
+  if (lastId) {
+    songSelect.value = lastId;
+    syncUIState();
+    renderSongGrid();
+    if (state === 'playing') restartGame();
+  }
+  songFileInput.value = '';
+});
+
+btnPauseRestart.addEventListener('click', restartGame);
+btnPauseQuit.addEventListener('click', quitGame);
+songSelect.addEventListener('change', () => {
+  syncUIState();
+  renderSongGrid();
+  if (state === 'playing') restartGame();
+});
+difficultySelect.addEventListener('change', () => {
+  syncUIState();
+  if (state === 'playing') restartGame();
+});
+sceneSelect.addEventListener('change', () => {
+  syncUIState();
+  if (state === 'playing') {
+    const bg = getBgVideo();
+    void bg.play().catch(() => {});
+    scene.setBackground(bg);
+  }
+});
+lengthSelect.addEventListener('change', syncUIState);
+
+btnPanelToggle.addEventListener('click', () => toggleSettingsDrawer(false));
+btnOpenSettings.addEventListener('click', () => toggleSettingsDrawer());
+btnLobbySettings.addEventListener('click', () => toggleSettingsDrawer(true));
+
 window.addEventListener('keydown', (e) => {
-  if (e.key !== 'Escape' || state !== 'playing' || !clock) return;
-  if (clock.isPaused) {
-    void clock.resume().then(() => void bgVideo?.play().catch(() => {}));
-    log('Reanudado');
-  } else {
-    clock.pause();
-    bgVideo?.pause();
-    log('Pausa (Esc para continuar)');
+  if (e.key === 'Escape' && !libraryModal.classList.contains('hidden')) {
+    closeLibraryModal();
+    return;
+  }
+  if (state !== 'playing' || !clock) return;
+  if (e.key === 'Escape' || e.code === 'Space' || e.key === 'p' || e.key === 'P') {
+    e.preventDefault();
+    togglePause();
   }
 });
 deviceSelect.addEventListener('change', async () => {
@@ -566,10 +1046,13 @@ deviceSelect.addEventListener('change', async () => {
   await boot();
 });
 window.addEventListener('beforeunload', () => {
+  stopPreview();
   stopCamera(camera);
   tracker.close();
 });
 
+syncUIState();
+renderSongGrid();
 void refreshDevices();
 void scene
   .loadAssets()

@@ -19,14 +19,14 @@ interface HandSide {
 }
 
 /** El gesto debe sostenerse este tiempo para disparar. */
-const HOLD_MS = 100;
-/** Mínimo entre disparos de la misma mano. */
-const REFRACTORY_MS = 300;
+const HOLD_MS = 45;
+/** Mínimo entre disparos de la misma extremidad. */
+const REFRACTORY_MS = 220;
 
 /**
- * Detecta "mano elevada" con histéresis + antirrebote:
- * dispara una vez si la muñeca se sostiene HOLD_MS sobre el umbral alto
- * y se rearma solo al volver a la zona neutral (bajo el hombro).
+ * Detecta golpe/elevación de mano con histéresis + antirrebote:
+ * dispara cuando el puño sube a la altura de pecho/hombro/cabeza (donde llegan
+ * las tarjetas de puño en el referente) y se rearma al bajar hacia posición neutral.
  */
 export class HandRaiseDetector {
   private sides: Record<Hand, HandSide> = {
@@ -44,9 +44,10 @@ export class HandRaiseDetector {
       const vis = wrist?.visibility ?? 0;
       if (!wrist || !shoulder || vis < VIS_MIN) continue;
 
-      // Umbral proporcional al torso calibrado: muñeca claramente por encima del hombro.
-      const raiseY = metrics.shoulderY - 0.4 * metrics.torsoHeight;
-      const neutralY = metrics.shoulderY + 0.1 * metrics.torsoHeight;
+      // Las notas de puño llegan a altura de pecho/cara: basta con subir el puño
+      // a nivel de hombro/pecho alto, y se rearma al bajar hacia el torso medio.
+      const raiseY = metrics.shoulderY + 0.12 * metrics.torsoHeight;
+      const neutralY = metrics.shoulderY + 0.36 * metrics.torsoHeight;
 
       if (wrist.y < raiseY) {
         if (s.candidateSince === 0) s.candidateSince = now;
@@ -73,20 +74,21 @@ export class HandRaiseDetector {
 
 interface FootSide {
   ankle: number;
+  knee: number;
   lifted: boolean;
   candidateSince: number;
   lastFire: number;
 }
 
 /**
- * Detecta "pie levantado" (paso): el tobillo sube sobre su baseline
- * calibrado una fracción del torso. Mismo esquema de histéresis y
- * antirrebote que las manos; se rearma al volver al suelo.
+ * Detecta "pie levantado" (paso): el tobillo o la rodilla sube sobre su baseline
+ * calibrado una fracción del torso. Incluye respaldo por rodilla para cuando
+ * la confianza de tobillo baja en cámara web.
  */
 export class FootLiftDetector {
   private sides: Record<Hand, FootSide> = {
-    left: { ankle: LM.leftAnkle, lifted: false, candidateSince: 0, lastFire: 0 },
-    right: { ankle: LM.rightAnkle, lifted: false, candidateSince: 0, lastFire: 0 },
+    left: { ankle: LM.leftAnkle, knee: LM.leftKnee, lifted: false, candidateSince: 0, lastFire: 0 },
+    right: { ankle: LM.rightAnkle, knee: LM.rightKnee, lifted: false, candidateSince: 0, lastFire: 0 },
   };
 
   update(lms: Landmark[] | null, metrics: BodyMetrics): GestureEvent[] {
@@ -96,15 +98,25 @@ export class FootLiftDetector {
       left: metrics.leftAnkleY,
       right: metrics.rightAnkleY,
     };
-    // Umbral: una elevación del ~12% del torso calibrado (un paso real lo supera con creces).
-    const lift = Math.max(0.035, metrics.torsoHeight * 0.12);
+    const lift = Math.max(0.026, metrics.torsoHeight * 0.095);
+    const kneeBaseline = (metrics.hipY + (metrics.leftAnkleY + metrics.rightAnkleY) / 2) / 2;
+    const kneeLift = Math.max(0.028, metrics.torsoHeight * 0.1);
     for (const foot of ['left', 'right'] as const) {
       const s = this.sides[foot];
       const ankle = lms?.[s.ankle];
-      const vis = ankle?.visibility ?? 0;
-      if (!ankle || vis < VIS_MIN) continue;
+      const knee = lms?.[s.knee];
+      const ankleOk = ankle && (ankle.visibility ?? 0) >= 0.35;
+      const kneeOk = knee && (knee.visibility ?? 0) >= 0.45;
+      if (!ankleOk && !kneeOk) continue;
 
-      if (ankle.y < baselines[foot] - lift) {
+      const isUp =
+        (ankleOk && ankle.y < baselines[foot] - lift) ||
+        (kneeOk && knee.y < kneeBaseline - kneeLift);
+      const isDown =
+        (!ankleOk || ankle.y > baselines[foot] - lift * 0.4) &&
+        (!kneeOk || knee.y > kneeBaseline - kneeLift * 0.4);
+
+      if (isUp) {
         if (s.candidateSince === 0) s.candidateSince = now;
         if (!s.lifted && now - s.candidateSince >= HOLD_MS && now - s.lastFire >= REFRACTORY_MS) {
           s.lifted = true;
@@ -113,7 +125,7 @@ export class FootLiftDetector {
         }
       } else {
         s.candidateSince = 0;
-        if (s.lifted && ankle.y > baselines[foot] - lift * 0.4) s.lifted = false;
+        if (s.lifted && isDown) s.lifted = false;
       }
     }
     return events;
@@ -128,8 +140,8 @@ export class FootLiftDetector {
 }
 
 /**
- * Detecta salto: ambos tobillos por encima del baseline a la vez,
- * sostenido un instante. Se rearma cuando los dos vuelven al suelo.
+ * Detecta salto: ambos tobillos se elevan o los hombros/cadera suben juntos
+ * sobre su posición calibrada. Se rearma al volver al suelo.
  */
 export class JumpDetector {
   private airborne = false;
@@ -137,18 +149,28 @@ export class JumpDetector {
   private lastFire = 0;
 
   update(lms: Landmark[] | null, metrics: BodyMetrics): GestureEvent[] {
+    if (!lms) return [];
     const now = performance.now();
-    const la = lms?.[LM.leftAnkle];
-    const ra = lms?.[LM.rightAnkle];
-    if (!la || !ra || (la.visibility ?? 0) < VIS_MIN || (ra.visibility ?? 0) < VIS_MIN) {
-      return [];
-    }
-    const lift = Math.max(0.03, metrics.torsoHeight * 0.1);
-    const bothUp = la.y < metrics.leftAnkleY - lift && ra.y < metrics.rightAnkleY - lift;
+    const la = lms[LM.leftAnkle];
+    const ra = lms[LM.rightAnkle];
+    const ls = lms[LM.leftShoulder];
+    const rs = lms[LM.rightShoulder];
+    const lift = Math.max(0.025, metrics.torsoHeight * 0.085);
+    const anklesUp =
+      (la?.visibility ?? 0) >= 0.35 &&
+      (ra?.visibility ?? 0) >= 0.35 &&
+      la.y < metrics.leftAnkleY - lift &&
+      ra.y < metrics.rightAnkleY - lift;
+    const shoulderY = ((ls?.y ?? 1) + (rs?.y ?? 1)) / 2;
+    const torsoUp =
+      (ls?.visibility ?? 0) >= 0.45 &&
+      (rs?.visibility ?? 0) >= 0.45 &&
+      shoulderY < metrics.shoulderY - Math.max(0.028, metrics.torsoHeight * 0.11);
+    const bothUp = anklesUp || torsoUp;
 
     if (bothUp) {
       if (this.candidateSince === 0) this.candidateSince = now;
-      if (!this.airborne && now - this.candidateSince >= 80 && now - this.lastFire >= REFRACTORY_MS) {
+      if (!this.airborne && now - this.candidateSince >= 55 && now - this.lastFire >= REFRACTORY_MS) {
         this.airborne = true;
         this.lastFire = now;
         return [{ kind: 'jumped', hand: 'left', timestamp: now }];

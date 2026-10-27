@@ -7,73 +7,268 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <main>
+    <main class="panel-collapsed" id="app-main">
       <section class="stage">
         <canvas id="scene" width="1280" height="720"></canvas>
         <div id="big-card" class="big-card hidden"></div>
-        <div class="stage-topbar">
-          <div class="stage-controls">
-            <label for="device-select">Cámara</label>
-            <select id="device-select" disabled></select>
-            <button id="btn-start">Iniciar cámara</button>
-            <button id="btn-calibrate" disabled>Calibrar</button>
-            <button id="btn-play" disabled>Jugar</button>
+
+        <!-- Barra superior flotante estilo Arcade -->
+        <header class="stage-topbar">
+          <div class="topbar-left">
+            <div class="brand-badge">
+              <span class="brand-dot"></span>
+              <span class="brand-name">VIBETHON</span>
+            </div>
+            <button id="btn-nav-song" class="nav-song-pill" type="button" title="Abrir Biblioteca Musical">
+              <span class="nav-song-icon">🎵</span>
+              <span id="nav-song-title" class="nav-song-title">EDM Detection Mode</span>
+              <span id="nav-song-meta" class="nav-song-meta">128 BPM · Intermedio</span>
+            </button>
           </div>
+
           <div id="guide-status" class="guide-status"></div>
+
+          <div class="stage-controls">
+            <button id="btn-open-library" class="btn-glass" type="button" title="Elegir canción o importar MP3">
+              🎵 Biblioteca
+            </button>
+            <button id="btn-calibrate" class="btn-glass" type="button" disabled title="Calibrar postura corporal">
+              🎯 Calibrar
+            </button>
+            <button id="btn-play" class="btn-neon-sm" type="button" disabled title="Comenzar partida">
+              ▶ Jugar
+            </button>
+            <button id="btn-open-settings" class="btn-glass btn-icon" type="button" title="Configuración y Cámara">
+              ⚙️ Ajustes
+            </button>
+            <button id="btn-start" type="button" hidden>Iniciar cámara</button>
+          </div>
+
+          <div id="play-controls" class="play-controls hidden">
+            <button id="btn-pause" title="Atajo: Espacio, P o Esc">⏸ Pausar</button>
+            <button id="btn-restart" title="Reiniciar desde el principio">↻ Reiniciar</button>
+            <button id="btn-open-library-play" type="button" title="Cambiar canción o nivel">🎵 Canción</button>
+            <button id="btn-stop" title="Terminar y volver">⏹ Salir</button>
+          </div>
+        </header>
+
+        <!-- Menú de Pausa -->
+        <div id="pause-card" class="pause-card hidden">
+          <div class="modal-glass pause-box">
+            <span class="badge-pill warn">SESIÓN EN PAUSA</span>
+            <h2>JUEGO EN PAUSA</h2>
+            <p class="tagline">Pulsa <strong>Espacio</strong>, <strong>P</strong> o <strong>Esc</strong> para continuar</p>
+            <div class="pause-actions">
+              <button id="btn-resume" class="hero">▶ Reanudar partida</button>
+              <button id="btn-pause-library" type="button">🎵 Cambiar canción o dificultad</button>
+              <button id="btn-pause-restart">↻ Reiniciar canción</button>
+              <button id="btn-pause-quit">⏹ Salir al menú principal</button>
+            </div>
+          </div>
         </div>
+
+        <!-- Lobby / Tarjeta de inicio estilo plataforma Arcade -->
         <div id="start-card" class="start-card">
-          <h2>DEVIN VIBETHON</h2>
-          <p class="tagline">Ritmo y cardio controlados por tu cámara</p>
-          <ol class="steps">
-            <li>Permite el acceso a la cámara</li>
-            <li>Ponte a cuerpo completo y calibra</li>
-            <li>Golpea con manos y pies · esquiva, agáchate y salta</li>
-          </ol>
-          <button id="btn-hero" class="hero">Iniciar cámara</button>
-          <p id="hero-hint" class="hint">Necesitas una webcam · todo se procesa en tu navegador</p>
+          <div class="lobby-card">
+            <div class="lobby-header">
+              <span class="badge-pill">ARCADE FITNESS · CONTROL POR CÁMARA</span>
+              <h2>DEVIN VIBETHON</h2>
+              <p id="hero-hint" class="tagline">Necesitas una webcam · todo se procesa en tiempo real en tu navegador</p>
+            </div>
+
+            <!-- Panel rápido de canción y modo en el Lobby -->
+            <div class="lobby-config">
+              <div class="lobby-song-box">
+                <div class="lobby-song-info">
+                  <span class="lobby-label">PISTA SELECCIONADA</span>
+                  <strong id="lobby-song-name" class="lobby-song-name">EDM Detection Mode — Club Electro</strong>
+                  <span id="lobby-song-sub" class="lobby-song-sub">⚡ Electro / Beat Fever · 128 BPM</span>
+                </div>
+                <div class="lobby-song-actions">
+                  <button id="btn-lobby-library" class="btn-glass-accent" type="button">🎵 Explorar Biblioteca (24+)</button>
+                  <button id="btn-lobby-import" class="btn-glass" type="button">📂 + Importar mi MP3</button>
+                </div>
+              </div>
+
+              <div class="lobby-selectors-row">
+                <div class="lobby-group">
+                  <span class="lobby-label">NIVEL DE DIFICULTAD</span>
+                  <div class="seg-group" id="lobby-diff-group">
+                    <button type="button" class="seg-btn" data-diff="basico">🟢 Básico</button>
+                    <button type="button" class="seg-btn active" data-diff="intermedio">🟡 Intermedio</button>
+                    <button type="button" class="seg-btn" data-diff="avanzado">🔴 Avanzado</button>
+                  </div>
+                </div>
+
+                <div class="lobby-group">
+                  <span class="lobby-label">ESCENARIO</span>
+                  <div class="seg-group" id="lobby-scene-group">
+                    <button type="button" class="seg-btn active" data-scene="loop-fairground">🎡 Feria</button>
+                    <button type="button" class="seg-btn" data-scene="loop-diamonds">💎 Diamantes</button>
+                    <button type="button" class="seg-btn" data-scene="loop-gears">⚙️ Engranajes</button>
+                  </div>
+                </div>
+
+                <div class="lobby-group">
+                  <span class="lobby-label">DURACIÓN</span>
+                  <div class="seg-group" id="lobby-len-group">
+                    <button type="button" class="seg-btn" data-len="32">16s</button>
+                    <button type="button" class="seg-btn" data-len="64">32s</button>
+                    <button type="button" class="seg-btn" data-len="1200">10m</button>
+                    <button type="button" class="seg-btn active" data-len="3600">30m</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="lobby-steps">
+              <div class="step-pill"><span>1</span> Activa tu cámara</div>
+              <div class="step-pill"><span>2</span> Encuadra cuerpo completo</div>
+              <div class="step-pill"><span>3</span> Golpea, pisa y esquiva al ritmo</div>
+            </div>
+
+            <div class="lobby-footer">
+              <button id="btn-hero" class="hero">Iniciar cámara</button>
+              <button id="btn-lobby-settings" class="btn-glass" type="button">⚙️ Cámara y Diagnóstico</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal interactivo de Biblioteca Musical -->
+        <div id="library-modal" class="library-modal hidden">
+          <div class="library-dialog">
+            <div class="library-header">
+              <div>
+                <span class="badge-pill">CATÁLOGO DE RITMOS &amp; ANALIZADOR DE AUDIO</span>
+                <h3>🎵 Biblioteca Musical</h3>
+              </div>
+              <div class="library-header-actions">
+                <button id="btn-modal-import" class="btn-Import-cta" type="button">
+                  📂 + Importar MP3 / WAV desde mi PC
+                </button>
+                <button id="btn-close-library" class="btn-close" type="button" title="Cerrar">✕</button>
+              </div>
+            </div>
+
+            <div class="library-toolbar">
+              <div class="library-tabs" id="library-tabs">
+                <button type="button" class="tab-btn active" data-filter="all">Todas (24+)</button>
+                <button type="button" class="tab-btn" data-filter="electro">⚡ Electro / Beat Fever (12)</button>
+                <button type="button" class="tab-btn" data-filter="rock">🎸 Rock / Guitar Hero (12)</button>
+                <button type="button" class="tab-btn" data-filter="custom">★ Mis MP3 Importados</button>
+              </div>
+              <input id="song-search" class="song-search" type="search" placeholder="🔍 Buscar canción, estilo o BPM…" />
+            </div>
+
+            <div id="song-grid" class="song-grid"></div>
+
+            <div class="library-footer">
+              <div class="library-footer-left">
+                <span class="lobby-label">DIFICULTAD ACTIVA:</span>
+                <div class="seg-group" id="modal-diff-group">
+                  <button type="button" class="seg-btn" data-diff="basico">🟢 Básico (Suave)</button>
+                  <button type="button" class="seg-btn active" data-diff="intermedio">🟡 Intermedio (Cardio)</button>
+                  <button type="button" class="seg-btn" data-diff="avanzado">🔴 Avanzado (Rápido + Dobles)</button>
+                </div>
+              </div>
+              <button id="btn-confirm-library" class="hero btn-confirm-lib" type="button">✓ Listo</button>
+            </div>
+          </div>
         </div>
       </section>
 
+      <!-- Drawer lateral de Configuración, Cámara y Diagnóstico (oculto por defecto) -->
       <aside class="panel" id="panel">
-        <button id="btn-panel-toggle" class="panel-toggle" title="Contraer panel">»</button>
+        <div class="drawer-header">
+          <strong>⚙️ Configuración y Cámara</strong>
+          <button id="btn-panel-toggle" class="panel-toggle" title="Cerrar panel">✕</button>
+        </div>
         <div class="panel-body">
-        <div class="controls">
-          <label for="scene-select">Escenario</label>
-          <select id="scene-select">
-            <option value="loop-fairground" selected>Feria</option>
-            <option value="loop-diamonds">Diamantes</option>
-            <option value="loop-gears">Engranajes</option>
-          </select>
-          <label for="length-select">Sesión</label>
-          <select id="length-select">
-            <option value="32">Corta (16 s)</option>
-            <option value="64">Normal (32 s)</option>
-            <option value="1200">Media (10 min)</option>
-            <option value="3600" selected>Larga (30 min)</option>
-          </select>
-        </div>
+          <div class="controls">
+            <label for="device-select">Dispositivo de Cámara</label>
+            <select id="device-select" disabled></select>
 
-        <div class="status-grid">
-          <div class="chip" id="chip-permission">Permiso: pendiente</div>
-          <div class="chip" id="chip-pose">Pose: sin datos</div>
-          <div class="chip" id="chip-hands">Manos: —</div>
-          <div class="chip" id="chip-feet">Pies: —</div>
-          <div class="chip" id="chip-lean">Esquiva: —</div>
-          <div class="chip" id="chip-duck">Agachado: —</div>
-        </div>
+            <label for="song-select">Canción activa</label>
+            <select id="song-select">
+              <optgroup label="⚡ Electro / Beat Fever / Synth-Pop (12)">
+                <option value="edm-detection-mode" selected>1. EDM Detection Mode — Club Electro (128 BPM · estilo Otto Knows)</option>
+                <option value="laserpack">2. Laserpack — Electro House (128 BPM · estilo Beat Fever)</option>
+                <option value="raving-energy">3. Raving Energy — Festival Anthem (122 BPM · estilo David Guetta)</option>
+                <option value="raving-energy-faster">4. Raving Energy (Overdrive Remix) — Fast Rave (134 BPM)</option>
+                <option value="realizer">5. Realizer — Progressive Dance (125 BPM · estilo With You)</option>
+                <option value="brain-dance">6. Brain Dance — Dark Electro-Pop (124 BPM · estilo Poker Face)</option>
+                <option value="voltaic">7. Voltaic — Synthwave Cyber-Beat (120 BPM · estilo Electric Love)</option>
+                <option value="eighties-action">8. Eighties Action — 80s Dance-Pop (132 BPM · estilo Let's Love)</option>
+                <option value="kick-shock">9. Kick Shock — Lead Synth Pop-Dance (138 BPM · estilo Shut Up &amp; Dance)</option>
+                <option value="shiny-tech">10. Shiny Tech — Hyper Techno-Pop (138 BPM · estilo Young Girl A)</option>
+                <option value="club-diver">11. Club Diver — Euro Electro-Club (140 BPM)</option>
+                <option value="neon-laser-horizon">12. Neon Laser Horizon — Fast Synth-Wave (160 BPM)</option>
+              </optgroup>
+              <optgroup label="🎸 Rock / Guitar Hero / Indie-Punk (12)">
+                <option value="cool-rock">1. Cool Rock — Stadium Guitar Rock (128 BPM · estilo Guitar Hero)</option>
+                <option value="hotrock">2. Hotrock — Glam &amp; Brass Power Rock (124 BPM · estilo The Struts)</option>
+                <option value="neolith">3. Neolith — Punk-Rock Dual Guitars (145 BPM · estilo Green Day Holiday)</option>
+                <option value="nonstop">4. Nonstop — Indie Dance-Rock (128 BPM · estilo Two Door Cinema Club)</option>
+                <option value="harmful-or-fatal">5. Harmful or Fatal — Fast J-Rock Guitar (135 BPM · estilo Eve Bokurano)</option>
+                <option value="professor-umlaut">6. Professor Umlaut — Euphoric Speed Rock (160 BPM · estilo Don't Stop Me Now)</option>
+                <option value="metalmania">7. Metalmania — Intense Guitar Hero Riff (150 BPM · estilo Dog Days Are Over)</option>
+                <option value="sax-rock-and-roll">8. Sax, Rock &amp; Roll — Upbeat Pop-Rock (128 BPM · estilo Damiano David)</option>
+                <option value="riptide-rock">9. Riptide — Driving Twin-Guitar Rock (128 BPM)</option>
+                <option value="rocket-power">10. Rocket Power — Funk-Rock Bass &amp; Guitar (120 BPM · estilo BØRNS)</option>
+                <option value="cool-hard-facts">11. Cool Hard Facts — Power Chord Rock (116 BPM)</option>
+                <option value="chipper">12. Chipper — Garage Distortion Punk (116 BPM)</option>
+              </optgroup>
+            </select>
+            <button id="btn-import-song" type="button">📂 + Importar MP3 / Canción propia</button>
+            <input id="song-file-input" type="file" accept="audio/*" multiple hidden />
 
-        <div class="metrics">
-          <div><span>FPS</span><strong id="m-fps">–</strong></div>
-          <div><span>Inferencia</span><strong id="m-infer">–</strong></div>
-          <div><span>Cámara</span><strong id="m-cam">–</strong></div>
-          <div><span>Modelo</span><strong id="m-model">–</strong></div>
-          <div><span>Aciertos izq.</span><strong id="m-left">0</strong></div>
-          <div><span>Aciertos der.</span><strong id="m-right">0</strong></div>
-          <div><span>Combo</span><strong id="m-combo">0</strong></div>
-          <div><span>Último juicio</span><strong id="m-last">–</strong></div>
-        </div>
+            <label for="difficulty-select">Nivel de dificultad</label>
+            <select id="difficulty-select">
+              <option value="basico">🟢 Básico (Suave · paso pausado)</option>
+              <option value="intermedio" selected>🟡 Intermedio (Cardio rítmico)</option>
+              <option value="avanzado">🔴 Avanzado (Rápido · pulso completo + dobles)</option>
+            </select>
 
-        <ol id="log" class="log"></ol>
+            <label for="scene-select">Escenario</label>
+            <select id="scene-select">
+              <option value="loop-fairground" selected>Feria</option>
+              <option value="loop-diamonds">Diamantes</option>
+              <option value="loop-gears">Engranajes</option>
+            </select>
+
+            <label for="length-select">Sesión</label>
+            <select id="length-select">
+              <option value="32">Corta (16 s)</option>
+              <option value="64">Normal (32 s)</option>
+              <option value="1200">Media (10 min)</option>
+              <option value="3600" selected>Larga (30 min)</option>
+            </select>
+          </div>
+
+          <div class="drawer-section-title">Estado de seguimiento corporal</div>
+          <div class="status-grid">
+            <div class="chip" id="chip-permission">Permiso: pendiente</div>
+            <div class="chip" id="chip-pose">Pose: sin datos</div>
+            <div class="chip" id="chip-hands">Manos: —</div>
+            <div class="chip" id="chip-feet">Pies: —</div>
+            <div class="chip" id="chip-lean">Esquiva: —</div>
+            <div class="chip" id="chip-duck">Agachado: —</div>
+          </div>
+
+          <div class="drawer-section-title">Métricas en tiempo real</div>
+          <div class="metrics">
+            <div><span>FPS</span><strong id="m-fps">–</strong></div>
+            <div><span>Inferencia</span><strong id="m-infer">–</strong></div>
+            <div><span>Cámara</span><strong id="m-cam">–</strong></div>
+            <div><span>Modelo</span><strong id="m-model">–</strong></div>
+            <div><span>Aciertos izq.</span><strong id="m-left">0</strong></div>
+            <div><span>Aciertos der.</span><strong id="m-right">0</strong></div>
+            <div><span>Combo</span><strong id="m-combo">0</strong></div>
+            <div><span>Último juicio</span><strong id="m-last">–</strong></div>
+          </div>
+
+          <div class="drawer-section-title">Registro de eventos</div>
+          <ol id="log" class="log"></ol>
         </div>
       </aside>
     </main>

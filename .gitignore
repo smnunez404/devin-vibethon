@@ -10,3 +10,6 @@ raw/
 
 # Harness local de screenshots e2e (puppeteer-core + Chrome)
 .shots/
+
+# Carpeta local de canciones de prueba para el importador de MP3
+mis-canciones/
